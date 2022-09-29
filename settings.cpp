@@ -800,6 +800,14 @@ void Settings::loadSettings()
                 }
                 else if (n == "dcOpacity")
                     general.displayControls.opacity = v.toDouble();
+                else if (n == "httpEnabled")
+                    general.httpServerEnabled = (v=="true");
+                else if (n == "httpPort")
+                    general.httpServerPort = v.toInt();
+                else if (n == "webSocketPort")
+                    general.webSocketServerPort = v.toInt();
+                else if (n == "disableScreens")
+                    general.disableScreens = (v=="true");
             }
         }
         else if(t == "spMain")
@@ -914,6 +922,16 @@ void Settings::saveSettings()
     gset += "\ndcIconSize = " + QString::number(general.displayControls.buttonSize);
     gset += QString("\ndcAlignment = %1,%2").arg(general.displayControls.alignmentV).arg(general.displayControls.alignmentH);
     gset += "\ndcOpacity = " + QString::number(general.displayControls.opacity);
+    if(general.httpServerEnabled)
+        gset += "\nhttpEnabled = true";
+    else
+        gset += "\nhttpEnabled = false";
+    gset += "\nhttpPort = " + QString::number(general.httpServerPort);
+    gset += "\nwebSocketPort = " + QString::number(general.webSocketServerPort);
+    if(general.disableScreens)
+        gset += "\ndisableScreens = true";
+    else
+        gset += "\ndisableScreens = false";
 
     // **** prepare softProjector main settings
     spset += "spSplitter = " + spMain.spSplitter.toHex();

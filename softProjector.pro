@@ -27,7 +27,8 @@ QT += core \
     quick \
     printsupport \
     multimedia \
-    multimediawidgets
+    multimediawidgets \
+    websockets
 
 TARGET = SoftProjector
 TEMPLATE = app
@@ -88,7 +89,9 @@ SOURCES += main.cpp \
     projectordisplayscreen.cpp \
     imagegenerator.cpp \
     spimageprovider.cpp \
-    mediacontrol.cpp
+    mediacontrol.cpp \
+    httpserver.cpp \
+    websocketserver.cpp
 HEADERS += softprojector.hpp \
     songwidget.hpp \
     biblewidget.hpp \
@@ -131,7 +134,9 @@ HEADERS += softprojector.hpp \
     projectordisplayscreen.hpp \
     imagegenerator.hpp \
     spimageprovider.hpp \
-    mediacontrol.hpp
+    mediacontrol.hpp \
+    httpserver.hpp \
+    websocketserver.hpp
 FORMS += softprojector.ui \
     songwidget.ui \
     biblewidget.ui \
@@ -170,3 +175,5 @@ RESOURCES += softprojector.qrc
 win32 {
     RC_FILE = softprojector.rc
 }
+
+DISTFILES +=

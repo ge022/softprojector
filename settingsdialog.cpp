@@ -72,6 +72,9 @@ void SettingsDialog::loadSettings(GeneralSettings &sets, Theme &thm, SlideShowSe
     is_always_on_top = gsettings.displayIsOnTop;
     current_display_screen = gsettings.displayScreen;
     currentDisplayScreen2 = gsettings.displayScreen2;
+    currentHTTPEnabled = gsettings.httpServerEnabled;
+    currentHTTPPort = gsettings.httpServerPort;
+    currentWebSocketPort = gsettings.webSocketServerPort;
 
     // Set individual items
     generalSettingswidget->setSettings(gsettings);
@@ -154,6 +157,14 @@ void SettingsDialog::applySettings()
     // Redraw the screen:
     emit updateScreen();
 
+    // Update HTTP server state
+    if(currentHTTPPort != gsettings.httpServerPort
+            || currentWebSocketPort != gsettings.webSocketServerPort
+            || currentHTTPEnabled != gsettings.httpServerEnabled)
+    {
+        emit httpServerState(gsettings.httpServerEnabled,gsettings.httpServerPort,gsettings.webSocketServerPort);
+    }
+
     // Save Settings
     theme.saveThemeUpdate();
 
@@ -161,6 +172,8 @@ void SettingsDialog::applySettings()
     is_always_on_top = gsettings.displayIsOnTop;
     current_display_screen = gsettings.displayScreen;
     currentDisplayScreen2 = gsettings.displayScreen2;
+    currentHTTPEnabled = gsettings.httpServerEnabled;
+    currentWebSocketPort = gsettings.webSocketServerPort;
 }
 
 void SettingsDialog::getThemes()

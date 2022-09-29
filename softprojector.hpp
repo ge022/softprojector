@@ -40,6 +40,8 @@
 #include "videoinfo.hpp"
 #include "slideshoweditor.hpp"
 #include "schedule.hpp"
+#include "httpserver.hpp"
+#include "websocketserver.hpp"
 
 class QActionGroup;
 
@@ -75,6 +77,8 @@ public:
     PictureWidget *pictureWidget;
     MediaWidget *mediaPlayer;
     MediaControl *mediaControls;
+    WebSocketServer *webSocketServer;
+    HttpServer *httpServer;
 
     bool showing; // whether we are currently showing to the projector
     Song current_song;
@@ -93,6 +97,7 @@ public slots:
     void saveSettings();
     void positionDisplayWindow();
     void updateScreen();
+    void httpServerState(bool &state, int &httpServerPort, int &webSocketServerPort);
 
     void setWaitCursor();
     void setArrowCursor();

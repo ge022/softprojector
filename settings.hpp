@@ -286,6 +286,10 @@ public:
     bool settingsChangedAll;
     bool settingsChangedMulti;
     bool settingsChangedSingle;
+    bool httpServerEnabled;
+    int webSocketServerPort;
+    int httpServerPort;
+    bool disableScreens;
 };
 
 class DisplaySettings

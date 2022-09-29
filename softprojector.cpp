@@ -56,6 +56,13 @@ SoftProjector::SoftProjector(QWidget *parent)
     mediaPlayer = new MediaWidget;
     mediaControls = new MediaControl(this);
 
+    if (mySettings.general.httpServerEnabled) {
+        webSocketServer = new WebSocketServer();
+        webSocketServer->startServer(mySettings.general.webSocketServerPort);
+        httpServer = new HttpServer();
+        httpServer->startServer(mySettings.general.httpServerPort, mySettings.general.webSocketServerPort);
+    }
+
     ui->setupUi(this);
 
     // Create action group for language slections
@@ -71,7 +78,9 @@ SoftProjector::SoftProjector(QWidget *parent)
     // Apply Settings
     applySetting(mySettings.general, theme, mySettings.slideSets, mySettings.bibleSets, mySettings.bibleSets2);
 
-    positionDisplayWindow();
+    if (!mySettings.general.disableScreens) {
+        positionDisplayWindow();
+    }
 
     showing = false;
 
@@ -110,6 +119,7 @@ SoftProjector::SoftProjector(QWidget *parent)
                                     BibleVersionSettings&,BibleVersionSettings&)));
     connect(settingsDialog,SIGNAL(positionsDisplayWindow()),this,SLOT(positionDisplayWindow()));
     connect(settingsDialog,SIGNAL(updateScreen()),this,SLOT(updateScreen()));
+    connect(settingsDialog,SIGNAL(httpServerState(bool&,int&,int&)),this,SLOT(httpServerState(bool&,int&,int&)));
     connect(songWidget,SIGNAL(addToSchedule(Song&)),this,SLOT(addToShcedule(Song&)));
     connect(announceWidget,SIGNAL(addToSchedule(Announcement&)),this,SLOT(addToShcedule(Announcement&)));
 
@@ -207,6 +217,8 @@ SoftProjector::~SoftProjector()
     delete shSart2;
     delete helpDialog;
     delete ui;
+    delete webSocketServer;
+    delete httpServer;
 }
 
 void SoftProjector::positionDisplayWindow()
@@ -290,6 +302,9 @@ void SoftProjector::positionDisplayWindow()
 
 void SoftProjector::showDisplayScreen(bool show)
 {
+    if (mySettings.general.disableScreens)
+        return;
+
     if(show)
     {
         pds1->showFullScreen();
@@ -388,6 +403,20 @@ void SoftProjector::applySetting(GeneralSettings &g, Theme &t, SlideShowSettings
     }
     cur_locale = splocale;
     retranslateUis();
+}
+
+void SoftProjector::httpServerState(bool &state, int &httpServerPort, int &webSocketServerPort)
+{
+    if (httpServer->isRunning)
+        httpServer->stopServer();
+
+    if (webSocketServer->isRunning)
+        webSocketServer->stopServer();
+
+    if (state) {
+        httpServer->startServer(httpServerPort, webSocketServerPort);
+        webSocketServer->startServer(webSocketServerPort);
+    }
 }
 
 void SoftProjector::closeEvent(QCloseEvent *event)
@@ -695,6 +724,11 @@ void SoftProjector::updateScreen()
         ui->actionShow->setEnabled(true);
         ui->actionHide->setEnabled(false);
         ui->actionClear->setEnabled(false);
+
+        if (mySettings.general.httpServerEnabled)
+        {
+            webSocketServer->setBlank();
+        }
     }
     else if ((currentRow >=0 || pType == VIDEO)  && !new_list)
     {
@@ -776,6 +810,11 @@ void SoftProjector::showBible()
                                                             mySettings.bibleSets),theme.bible);
         }
     }
+
+    if(mySettings.general.httpServerEnabled)
+    {
+        webSocketServer->setBibleText(bibleWidget->bible.getCurrentVerseAndCaption(currentRows,theme.bible, mySettings.bibleSets));
+    }
 }
 
 void SoftProjector::showSong(int currentRow)
@@ -802,6 +841,11 @@ void SoftProjector::showSong(int currentRow)
         {
             pds2->renderSongText(current_song.getStanza(currentRow),s1);
         }
+    }
+
+    if(mySettings.general.httpServerEnabled)
+    {
+        webSocketServer->setSongText(current_song.getStanza(currentRow));
     }
 }
 
@@ -864,11 +908,15 @@ void SoftProjector::on_actionClear_triggered()
     ui->actionClear->setEnabled(false);
     ui->actionShow->setEnabled(true);
 //    ui->actionHide->setEnabled(false);
+    if (mySettings.general.httpServerEnabled)
+    {
+        webSocketServer->setBlank();
+    }
 }
 
 void SoftProjector::on_actionCloseDisplay_triggered()
 {
-    if(ui->actionCloseDisplay->isChecked())
+    if(ui->actionCloseDisplay->isChecked() && !mySettings.general.disableScreens)
     {
         pds1->showFullScreen();
         if(hasDisplayScreen2)
