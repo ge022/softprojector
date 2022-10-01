@@ -802,6 +802,8 @@ void Settings::loadSettings()
                     general.displayControls.opacity = v.toDouble();
                 else if (n == "httpEnabled")
                     general.httpServerEnabled = (v=="true");
+                else if (n == "httpServerIPAddress")
+                    general.httpServerIPAddress = v;
                 else if (n == "httpPort")
                     general.httpServerPort = v.toInt();
                 else if (n == "webSocketPort")
@@ -926,6 +928,7 @@ void Settings::saveSettings()
         gset += "\nhttpEnabled = true";
     else
         gset += "\nhttpEnabled = false";
+    gset += "\nhttpServerIPAddress = " + general.httpServerIPAddress;
     gset += "\nhttpPort = " + QString::number(general.httpServerPort);
     gset += "\nwebSocketPort = " + QString::number(general.webSocketServerPort);
     if(general.disableScreens)

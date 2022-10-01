@@ -97,7 +97,7 @@ public slots:
     void saveSettings();
     void positionDisplayWindow();
     void updateScreen();
-    void httpServerState(bool &state, int &httpServerPort, int &webSocketServerPort);
+    void httpServerState(bool &state, QString &httpServerIPAddress, int &httpServerPort, int &webSocketServerPort);
 
     void setWaitCursor();
     void setArrowCursor();

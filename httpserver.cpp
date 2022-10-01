@@ -25,8 +25,9 @@
 
 HttpServer::HttpServer() { }
 
-void HttpServer::startServer(quint16 httpServerPort, quint16 webSocketServerPort)
+void HttpServer::startServer(QString httpServerIPAddress, quint16 httpServerPort, quint16 webSocketServerPort)
 {
+    ipAddress = httpServerIPAddress;
     httpPort = httpServerPort;
     webSocketPort = webSocketServerPort;
     server = new QTcpServer();
@@ -34,11 +35,11 @@ void HttpServer::startServer(quint16 httpServerPort, quint16 webSocketServerPort
     // waiting for the web brower to make contact, this will emit signal
     connect(server, SIGNAL(newConnection()), this, SLOT(startConnection()));
 
-    if(server->listen(QHostAddress::Any, httpPort)) {
+    if(server->listen(QHostAddress(ipAddress), httpPort)) {
         isRunning = true;
-        qDebug() << "HTTP server listening on port: " << httpPort;
+        qDebug() << "HTTP server listening on " << ipAddress << ":" << httpPort;
     } else {
-        qDebug() << "HTTP server failed to start on port:" << httpPort;
+        qDebug() << "HTTP server failed listening on " << ipAddress << ":" << httpPort;
     }
 }
 
@@ -71,6 +72,7 @@ void HttpServer::sendData()
     QString html = in.readAll();
     file.close();
 
+    html.replace("${ipAddress}", ipAddress);
     html.replace("${webSocketPort}", QString::number(webSocketPort));
 
     socket->write("HTTP/1.1 200 OK\r\n");       // \r needs to be before \n

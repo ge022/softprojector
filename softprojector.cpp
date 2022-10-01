@@ -58,9 +58,9 @@ SoftProjector::SoftProjector(QWidget *parent)
 
     if (mySettings.general.httpServerEnabled) {
         webSocketServer = new WebSocketServer();
-        webSocketServer->startServer(mySettings.general.webSocketServerPort);
+        webSocketServer->startServer(mySettings.general.httpServerIPAddress, mySettings.general.webSocketServerPort);
         httpServer = new HttpServer();
-        httpServer->startServer(mySettings.general.httpServerPort, mySettings.general.webSocketServerPort);
+        httpServer->startServer(mySettings.general.httpServerIPAddress, mySettings.general.httpServerPort, mySettings.general.webSocketServerPort);
     }
 
     ui->setupUi(this);
@@ -119,7 +119,7 @@ SoftProjector::SoftProjector(QWidget *parent)
                                     BibleVersionSettings&,BibleVersionSettings&)));
     connect(settingsDialog,SIGNAL(positionsDisplayWindow()),this,SLOT(positionDisplayWindow()));
     connect(settingsDialog,SIGNAL(updateScreen()),this,SLOT(updateScreen()));
-    connect(settingsDialog,SIGNAL(httpServerState(bool&,int&,int&)),this,SLOT(httpServerState(bool&,int&,int&)));
+    connect(settingsDialog,SIGNAL(httpServerState(bool&,QString&,int&,int&)),this,SLOT(httpServerState(bool&,QString&,int&,int&)));
     connect(songWidget,SIGNAL(addToSchedule(Song&)),this,SLOT(addToShcedule(Song&)));
     connect(announceWidget,SIGNAL(addToSchedule(Announcement&)),this,SLOT(addToShcedule(Announcement&)));
 
@@ -405,7 +405,7 @@ void SoftProjector::applySetting(GeneralSettings &g, Theme &t, SlideShowSettings
     retranslateUis();
 }
 
-void SoftProjector::httpServerState(bool &state, int &httpServerPort, int &webSocketServerPort)
+void SoftProjector::httpServerState(bool &state, QString &httpServerIPAddress, int &httpServerPort, int &webSocketServerPort)
 {
     if (httpServer->isRunning)
         httpServer->stopServer();
@@ -414,8 +414,8 @@ void SoftProjector::httpServerState(bool &state, int &httpServerPort, int &webSo
         webSocketServer->stopServer();
 
     if (state) {
-        httpServer->startServer(httpServerPort, webSocketServerPort);
-        webSocketServer->startServer(webSocketServerPort);
+        httpServer->startServer(httpServerIPAddress, httpServerPort, webSocketServerPort);
+        webSocketServer->startServer(httpServerIPAddress, webSocketServerPort);
     }
 }
 

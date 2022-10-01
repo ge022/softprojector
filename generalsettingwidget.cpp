@@ -104,6 +104,7 @@ void GeneralSettingWidget::loadSettings()
 
     // HTTP server
     ui->checkBoxEnableHttpServer->setChecked(mySettings.httpServerEnabled);
+    ui->lineEditHTTPServerIPAddress->setText(mySettings.httpServerIPAddress);
     ui->spinBoxHttpPort->setValue(mySettings.httpServerPort);
     ui->spinBoxWebSocketPort->setValue(mySettings.webSocketServerPort);
     ui->checkBoxDisableScreens->setChecked(mySettings.disableScreens);
@@ -146,6 +147,7 @@ GeneralSettings GeneralSettingWidget::getSettings()
     mySettings.displayControls.opacity = r;
 
     mySettings.httpServerEnabled = ui->checkBoxEnableHttpServer->isChecked();
+    mySettings.httpServerIPAddress = ui->lineEditHTTPServerIPAddress->text();
     mySettings.httpServerPort = ui->spinBoxHttpPort->value();
     mySettings.webSocketServerPort = ui->spinBoxWebSocketPort->value();
     mySettings.disableScreens = ui->checkBoxDisableScreens->isChecked();

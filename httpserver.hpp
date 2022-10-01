@@ -30,7 +30,7 @@ class HttpServer : public QObject
 
 public:
     HttpServer();
-    void startServer(quint16 httpServerPort, quint16 webSocketServerPort);
+    void startServer(QString httpServerIPAddress, quint16 httpServerPort, quint16 webSocketServerPort);
     void stopServer();
     bool isRunning;
 
@@ -41,6 +41,7 @@ public slots:
 
 private:
     QTcpServer *server = new QTcpServer();
+    QString ipAddress;
     quint16 httpPort;
     quint16 webSocketPort;
 

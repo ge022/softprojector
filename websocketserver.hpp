@@ -46,7 +46,7 @@ class WebSocketServer : public QObject
 
 public:
     WebSocketServer();
-    void startServer(quint16 port);
+    void startServer(QString httpServerIPAddress, quint16 port);
     void stopServer();
     void setBibleText(Verse verse);
     void setSongText(Stanza song);

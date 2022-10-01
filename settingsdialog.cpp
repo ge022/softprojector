@@ -73,6 +73,7 @@ void SettingsDialog::loadSettings(GeneralSettings &sets, Theme &thm, SlideShowSe
     current_display_screen = gsettings.displayScreen;
     currentDisplayScreen2 = gsettings.displayScreen2;
     currentHTTPEnabled = gsettings.httpServerEnabled;
+    currentHTTPServerIPAddress = gsettings.httpServerIPAddress;
     currentHTTPPort = gsettings.httpServerPort;
     currentWebSocketPort = gsettings.webSocketServerPort;
 
@@ -158,11 +159,12 @@ void SettingsDialog::applySettings()
     emit updateScreen();
 
     // Update HTTP server state
-    if(currentHTTPPort != gsettings.httpServerPort
+    if(currentHTTPServerIPAddress != gsettings.httpServerIPAddress
+            || currentHTTPPort != gsettings.httpServerPort
             || currentWebSocketPort != gsettings.webSocketServerPort
             || currentHTTPEnabled != gsettings.httpServerEnabled)
     {
-        emit httpServerState(gsettings.httpServerEnabled,gsettings.httpServerPort,gsettings.webSocketServerPort);
+        emit httpServerState(gsettings.httpServerEnabled,gsettings.httpServerIPAddress,gsettings.httpServerPort,gsettings.webSocketServerPort);
     }
 
     // Save Settings
@@ -173,6 +175,8 @@ void SettingsDialog::applySettings()
     current_display_screen = gsettings.displayScreen;
     currentDisplayScreen2 = gsettings.displayScreen2;
     currentHTTPEnabled = gsettings.httpServerEnabled;
+    currentHTTPServerIPAddress = gsettings.httpServerIPAddress;
+    currentHTTPPort = gsettings.httpServerPort;
     currentWebSocketPort = gsettings.webSocketServerPort;
 }
 

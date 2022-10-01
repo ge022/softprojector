@@ -26,10 +26,10 @@
 
 WebSocketServer::WebSocketServer() { }
 
-void WebSocketServer::startServer(quint16 port) {
+void WebSocketServer::startServer(QString httpServerIPAddress, quint16 port) {
     server = new QWebSocketServer(QStringLiteral("WebSocket Server"), QWebSocketServer::NonSecureMode, this);
-    if (server->listen(QHostAddress::Any, port)) {
-        qDebug() << "Websocket server listening on port" << port;
+    if (server->listen(QHostAddress(httpServerIPAddress), port)) {
+        qDebug() << "Websocket server listening on " << httpServerIPAddress << ":" << port;
         connect(server, &QWebSocketServer::newConnection, this, &WebSocketServer::onNewConnection);
         connect(server, &QWebSocketServer::closed, this, &WebSocketServer::closed);
         isRunning = true;
@@ -72,7 +72,7 @@ void WebSocketServer::closingClient()
 }
 
 void WebSocketServer::stopServer()
-{ // TODO: test changing port if delete server needed.
+{
     server->close();
     qDeleteAll(clients.begin(), clients.end());
     isRunning = false;
