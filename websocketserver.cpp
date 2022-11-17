@@ -86,17 +86,17 @@ void WebSocketServer::setBibleText(Verse verse)
 
     QJsonObject primary;
     primary["verse"] = verse.primary_text;
-    primary["reference"] = verse.primary_caption;
+    primary["reference"] = (verse.primary_caption == ":" ? "" : verse.primary_caption); // TODO: Fix bible ":" caption on empty text.
     bible["primary"] = primary;
 
     QJsonObject secondary;
     secondary["verse"] = verse.secondary_text;
-    secondary["reference"] = verse.secondary_caption;
+    secondary["reference"] =(verse.secondary_caption == ":" ? "" : verse.secondary_caption);
     bible["secondary"] = secondary;
 
     QJsonObject trinary;
     trinary["verse"] = verse.trinary_text;
-    trinary["reference"] = verse.trinary_caption;
+    trinary["reference"] = (verse.trinary_caption == ":" ? "" : verse.trinary_caption);
     bible["trinary"] = trinary;
 
     jsonOutput["bible"] = bible;
