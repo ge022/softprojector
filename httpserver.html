@@ -200,6 +200,7 @@
         }
 
         function displayBible(bible) {
+            const bibleTextMaxFontSize = (window.getComputedStyle(document.querySelector('#last-indicator')).display === 'none') ? 72 : 82;
             document.querySelector("#bible").style.display = "flex";
             if (window.getComputedStyle(document.querySelector('#primary')).display !== 'none') {
                 document.querySelector("#bible #primary .text").textContent = bible.primary.verse;
@@ -209,7 +210,7 @@
             if (window.getComputedStyle(document.querySelector('#secondary')).display !== 'none') {
                 document.querySelector("#bible #secondary .text").textContent = bible.secondary.verse;
                 document.querySelector("#bible #secondary .reference").textContent = bible.secondary.reference;
-                textFit(document.querySelector('#secondary'), {maxFontSize: 82});
+                textFit(document.querySelector('#secondary'), {maxFontSize: bibleTextMaxFontSize});
             }
         }
 
@@ -217,7 +218,6 @@
             document.querySelector("#song").style.display = "flex";
             document.querySelector("#song .text").textContent = song.stanza;
             if (window.getComputedStyle(document.querySelector('#last-indicator')).display !== 'none') {
-            console.log('here', document.querySelector('#song'));
                 // Not lower thirds style. Lower thirds has fixed font size.
                 textFit(document.querySelector('#song'), {maxFontSize: 95});
                 document.querySelector("#song #last-indicator").style.visibility = (!!song.isLast ? "visible" : "hidden");
