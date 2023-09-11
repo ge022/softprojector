@@ -182,6 +182,7 @@ void SongWidget::sendToPreview(Song song)
         ui->label_notes->setVisible(true);
     }
     preview_song = song;
+    ui->enableSplitVerseCheckBox->setEnabled(true);
 }
 
 void SongWidget::sendToPreviewFromSchedule(Song &song)
@@ -193,6 +194,8 @@ void SongWidget::sendToPreviewFromSchedule(Song &song)
 
 void SongWidget::sendToProjector(Song song, int row)
 {
+    emit enableSongSplitVerse(ui->enableSplitVerseCheckBox->isChecked());
+
     // Display the specified song text in the right-most column of softProjector:
     emit sendSong(song, row);
 
@@ -671,3 +674,16 @@ void SongWidget::setSearchActive()
     ui->lineEditSearch->setFocus();
     ui->lineEditSearch->selectAll();
 }
+
+/*
+ * Hide the song verse split list.
+ * It is only initially shown when going live through sendToProjector()
+ * This allows split to be disabled during live for if not intended.
+ */
+void SongWidget::on_enableSplitVerseCheckBox_toggled(bool checked)
+{
+    if (!checked) {
+        emit enableSongSplitVerse(false);
+    }
+}
+

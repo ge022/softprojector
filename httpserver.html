@@ -1,7 +1,7 @@
 <!--/***************************************************************************
 //
 //    softProjector - an open source media projection software
-//    Copyright (C) 2022  Vladislav Kobzar
+//    Copyright (C) 2023  Vladislav Kobzar
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -105,6 +105,7 @@
             padding: 0p;
         }
         body {
+            background-size: 1920px 1080px;
             width: 1860px;
             height: 1040px;
             padding: 20px 30px;
@@ -117,7 +118,6 @@
             margin: 0;
             color: #fff;
             text-shadow: 3px 3px 1px #000;
-            white-space: pre-wrap; /* For the line breaks in song text */
         }
 
         #primary {
@@ -143,6 +143,10 @@
             width: 1860px;
         }
 
+        #bible p {
+            white-space: pre-wrap;
+        }
+
         #bible .text {
             margin-bottom: 8px;
         }
@@ -155,16 +159,32 @@
         #song {
             height: 1040px;
             width: 1860px;
-            justify-content: flex-end;
-            font-size: 44px;
             letter-spacing: 4px;
+        }
+
+        #song.full-verse {
+           justify-content: flex-end;
+        }
+
+        #song.full-verse p {
+            white-space: pre-wrap;
             line-height: 55px;
+        }
+
+        #song.verse-split .text {
+            padding-top: 750px;
+            text-align: center;
+        }
+
+        #song.verse-split p {
+            white-space: pre;
+            line-height: 1.1;
         }
 
         #last-indicator {
             display: none;
         }
-    </style>-->
+    </style> -->
 </head>
 <body>
     <div id="bible">
@@ -195,6 +215,7 @@
             document.querySelector("#bible #secondary .reference").textContent = "";
             document.querySelector("#song .text").textContent = "";
             document.querySelector("#song #last-indicator").style.visibility = "hidden";
+            document.querySelector("#song").classList.remove("full-verse", "verse-split");
             document.querySelector("#bible").style.display = "none";
             document.querySelector("#song").style.display = "none";
         }
@@ -215,12 +236,21 @@
 
         function displaySong(song) {
             document.querySelector("#song").style.display = "flex";
-            document.querySelector("#song .text").textContent = song.stanza;
             if (window.getComputedStyle(document.querySelector('#last-indicator')).display !== 'none') {
-            console.log('here', document.querySelector('#song'));
-                // Not lower thirds style. Lower thirds has fixed font size.
+                // Projector styling.
+                document.querySelector("#song .text").textContent = song.stanza;
                 textFit(document.querySelector('#song'), {maxFontSize: 95});
                 document.querySelector("#song #last-indicator").style.visibility = (!!song.isLast ? "visible" : "hidden");
+            } else if (song.split.length != 0) {
+                // Lower-thirds styling for verse split.
+                document.querySelector("#song").classList.add("verse-split");
+                document.querySelector("#song .text").textContent = song.split;
+                textFit(document.querySelector('#song'), {maxFontSize: 65});
+            } else {
+                // Lower-thirds styling for full verse.
+                document.querySelector("#song").classList.add("full-verse");
+                document.querySelector("#song .text").textContent = song.stanza;
+                textFit(document.querySelector('#song'), {maxFontSize: 44});
             }
         }
 

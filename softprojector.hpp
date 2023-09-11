@@ -140,6 +140,7 @@ private:
     QList<Schedule> schedule;
     QDir appDataDir;
 
+    bool songSplitVerse;
 private slots:
     void showDisplayScreen(bool show);
 
@@ -249,6 +250,12 @@ private slots:
 
     void on_actionCloseDisplay_triggered();
     void updateCloseDisplayButtons(bool isOn);
+
+    void showSongVerseSplit(bool enabled);
+    void sendSongVerseSplit();
+    void splitSongVerse(QString stanza);
+    void on_songVerseSplitListWidget_itemSelectionChanged();
+    void on_songVerseSplitListWidget_itemDoubleClicked(QListWidgetItem *item);
 
 protected:
     void closeEvent(QCloseEvent *event);

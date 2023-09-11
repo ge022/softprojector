@@ -92,7 +92,6 @@ SoftProjector::SoftProjector(QWidget *parent)
     ui->projectTab->addTab(announceWidget,QIcon(":/icons/icons/announce.png"), tr("Announcements (F8)"));
     ui->projectTab->setCurrentIndex(0);
 
-
     connect(bibleWidget, SIGNAL(goLive(QStringList, QString, QItemSelection)),
             this, SLOT(setChapterList(QStringList, QString, QItemSelection)));
     connect(bibleWidget, SIGNAL(setArrowCursor()), this, SLOT(setArrowCursor()));
@@ -192,6 +191,10 @@ SoftProjector::SoftProjector(QWidget *parent)
 
     version_string = "2.2";
     this->setWindowTitle("SoftProjector " + version_string);
+
+    // Song verse split hidden by default.
+    ui->songVerseSplitLayoutWidget->hide();
+    connect(songWidget,SIGNAL(enableSongSplitVerse(bool)),this,SLOT(showSongVerseSplit(bool)));
 }
 
 SoftProjector::~SoftProjector()
@@ -747,6 +750,7 @@ void SoftProjector::updateScreen()
 
         ui->actionShow->setEnabled(false);
         ui->actionHide->setEnabled(true);
+
         switch (pType)
         {
         case BIBLE:
@@ -762,6 +766,7 @@ void SoftProjector::updateScreen()
         switch (pType)
         {
         case BIBLE:
+            showSongVerseSplit(false); // Don't show during bible.
             showBible();
             break;
         case SONG:
@@ -843,9 +848,11 @@ void SoftProjector::showSong(int currentRow)
         }
     }
 
-    if(mySettings.general.httpServerEnabled)
-    {
-        webSocketServer->setSongText(current_song.getStanza(currentRow));
+    if(mySettings.general.httpServerEnabled && !songSplitVerse)
+    { // Sends just the full verse.
+        webSocketServer->setSongText(current_song.getStanza(currentRow), "");
+    } else {
+        splitSongVerse(current_song.getStanza(currentRow).stanza);
     }
 }
 
@@ -889,7 +896,13 @@ void SoftProjector::showVideo()
 void SoftProjector::on_actionShow_triggered()
 {
     showing = true;
-    updateScreen();
+    if (ui->songVerseSplitListWidget->hasFocus()) {
+        ui->actionShow->setEnabled(false);
+        ui->actionHide->setEnabled(true);
+        sendSongVerseSplit(); // Resume song verse split display.
+    } else {
+        updateScreen();
+    }
 }
 
 void SoftProjector::on_actionHide_triggered()
@@ -2539,3 +2552,83 @@ void SoftProjector::openScheduleItem(QSqlQuery &q, const int scid, Announcement 
     a.alignmentV = q.value(12).toInt();
     a.alignmentH = q.value(13).toInt();
 }
+
+void SoftProjector::showSongVerseSplit(bool enabled)
+{
+    songSplitVerse = enabled;
+    if (!enabled) {
+        // Hide the split list. Split shows only when live.
+        ui->songVerseSplitLayoutWidget->setVisible(false);
+    }
+}
+
+/*
+ * Split the current song verse into lines.
+ * Sends a couple of lines at a time for output display.
+*/
+void SoftProjector::splitSongVerse(QString stanza)
+{
+    // Group into 2's. If verse has odd amount of lines, last group will include 3.
+    QStringList splitList;
+    QStringList oneLines = stanza.split("\n");
+    int splitListCount = oneLines.count();
+    int evenGroups = splitListCount / 2;
+    int remaining =  splitListCount % 2;
+
+    if (evenGroups == 0 && remaining != 0) {
+        // One line.
+        splitList.append(oneLines.at(0));
+    }
+
+    int line = 0;
+    for (int i = 0; i < evenGroups; i++) {
+        // Appends two lines together and adds to output splitList.
+
+        QString group = oneLines.at(line) + "\n" + oneLines.at(line + 1);
+
+        if (i == evenGroups - 1 && remaining != 0) {
+            // Add remainder to this last group.
+            group += "\n" + oneLines.at(line + 2);
+        }
+
+        splitList.append(group);
+
+        line = line + 2;
+    }
+
+    ui->songVerseSplitLayoutWidget->setVisible(true);
+    ui->songVerseSplitListWidget->blockSignals(true);
+    ui->songVerseSplitListWidget->clear();
+    ui->songVerseSplitListWidget->blockSignals(false);
+    ui->songVerseSplitListWidget->setSpacing(5);
+    ui->songVerseSplitListWidget->setWordWrap(false);
+    ui->songVerseSplitListWidget->addItems(splitList);
+    ui->songVerseSplitListWidget->setCurrentRow(0);
+    ui->songVerseSplitListWidget->setFocus();
+}
+
+/*
+ * Send the current song verse lines to the server.
+*/
+void SoftProjector::sendSongVerseSplit() {
+    int currentVerseRow = ui->listShow->currentRow();
+    QString verseSplit = ui->songVerseSplitListWidget->currentItem()->text();
+    webSocketServer->setSongText(current_song.getStanza(currentVerseRow), verseSplit);
+}
+
+void SoftProjector::on_songVerseSplitListWidget_itemSelectionChanged()
+{
+    if (!showing) {
+        return;
+    }
+    sendSongVerseSplit();
+}
+
+void SoftProjector::on_songVerseSplitListWidget_itemDoubleClicked(QListWidgetItem *item)
+{
+    showing = true;
+    ui->actionShow->setEnabled(false);
+    ui->actionHide->setEnabled(true);
+    sendSongVerseSplit(); // Resume song verse split display.
+}
+

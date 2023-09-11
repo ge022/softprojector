@@ -1,7 +1,7 @@
 /***************************************************************************
 //
 //    softProjector - an open source media projection software
-//    Copyright (C) 2022  Vladislav Kobzar
+//    Copyright (C) 2023  Vladislav Kobzar
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ void WebSocketServer::setBibleText(Verse verse)
 
     QJsonObject primary;
     primary["verse"] = verse.primary_text;
-    primary["reference"] = (verse.primary_caption == ":" ? "" : verse.primary_caption); // TODO: Fix bible ":" caption on empty text.
+    primary["reference"] = (verse.primary_caption == ":" ? "" : verse.primary_caption);
     bible["primary"] = primary;
 
     QJsonObject secondary;
@@ -104,7 +104,7 @@ void WebSocketServer::setBibleText(Verse verse)
     sendToClients();
 }
 
-void WebSocketServer::setSongText(Stanza song)
+void WebSocketServer::setSongText(Stanza song, QString verseSplit)
 {
     jsonOutput = QJsonObject();
 
@@ -117,6 +117,7 @@ void WebSocketServer::setSongText(Stanza song)
     jsonSong["musicBy"] = song.musicBy;
     jsonSong["number"] = song.number;
     jsonSong["isLast"] = song.isLast;
+    jsonSong["split"] = verseSplit;
 
     jsonOutput["song"] = jsonSong;
 
