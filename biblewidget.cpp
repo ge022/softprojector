@@ -195,6 +195,11 @@ void BibleWidget::sendToProjector(bool add_to_history)
 
 void BibleWidget::on_lineEditBook_textChanged(QString text)
 {
+    if (text == "0") {
+        ui->lineEditBook->clear();
+        return;
+    }
+
     // Called when the bible book filter field is modified.
     QStringList all_books = bible.getBooks();
 

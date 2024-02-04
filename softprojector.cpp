@@ -496,6 +496,8 @@ void SoftProjector::keyPressEvent(QKeyEvent *event)
         nextSlide();
     else if(key == Qt::Key_Enter)
         nextSlide();
+    else if(key == Qt::Key_Down || key == Qt::Key_Up)
+        on_songVerseSplitListWidgetNavigation(Qt::Key(key));
     else
         QMainWindow::keyPressEvent(event);
 }
@@ -2566,7 +2568,7 @@ void SoftProjector::showSongVerseSplit(bool enabled)
  * Split the current song verse into lines.
  * Sends a couple of lines at a time for output display.
 */
-void SoftProjector::splitSongVerse(QString stanza)
+void SoftProjector::splitSongVerse(QString stanza, QString selectRow)
 {
     // Group into 2's. If verse has odd amount of lines, last group will include 3.
     QStringList splitList;
@@ -2603,7 +2605,7 @@ void SoftProjector::splitSongVerse(QString stanza)
     ui->songVerseSplitListWidget->setSpacing(5);
     ui->songVerseSplitListWidget->setWordWrap(false);
     ui->songVerseSplitListWidget->addItems(splitList);
-    ui->songVerseSplitListWidget->setCurrentRow(0);
+    ui->songVerseSplitListWidget->setCurrentRow(selectRow == "last" ? (splitList.count() - 1) : 0);
     ui->songVerseSplitListWidget->setFocus();
 }
 
@@ -2630,5 +2632,25 @@ void SoftProjector::on_songVerseSplitListWidget_itemDoubleClicked(QListWidgetIte
     ui->actionShow->setEnabled(false);
     ui->actionHide->setEnabled(true);
     sendSongVerseSplit(); // Resume song verse split display.
+}
+
+/*
+ * Go to next or previous verse on up/down key of the first/last split.
+ * Going to the previous verse shows the last line split.
+ */
+void SoftProjector::on_songVerseSplitListWidgetNavigation(Qt::Key key) {
+    if (!showing || !ui->songVerseSplitListWidget->hasFocus()) {
+        return;
+    }
+    if (key == Qt::Key_Up && (ui->songVerseSplitListWidget->currentRow() == 0) && ui->listShow->currentRow() != 0) {
+        // Go to the previous verse, and show the last split line.
+        ui->listShow->blockSignals(true); // Block itemSelectionChanged(), which would show the first split line.
+        ui->listShow->setCurrentRow(ui->listShow->currentRow() - 1);
+        ui->listShow->blockSignals(false);
+        splitSongVerse(current_song.getStanza((ui->listShow->currentRow())).stanza, "last");
+    } else if (key == Qt::Key_Down && (ui->songVerseSplitListWidget->currentRow() == (ui->songVerseSplitListWidget->count() - 1))) {
+        // Go to the next verse.
+        nextSlide(); // Same as pressing the Right key.
+    }
 }
 

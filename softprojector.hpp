@@ -253,10 +253,10 @@ private slots:
 
     void showSongVerseSplit(bool enabled);
     void sendSongVerseSplit();
-    void splitSongVerse(QString stanza);
+    void splitSongVerse(QString stanza, QString selectRow = "first");
     void on_songVerseSplitListWidget_itemSelectionChanged();
     void on_songVerseSplitListWidget_itemDoubleClicked(QListWidgetItem *item);
-
+    void on_songVerseSplitListWidgetNavigation(Qt::Key);
 protected:
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *event);
