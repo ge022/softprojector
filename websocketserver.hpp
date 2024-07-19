@@ -49,7 +49,7 @@ public:
     void startServer(QString httpServerIPAddress, quint16 port);
     void stopServer();
     void setBibleText(Verse verse);
-    void setSongText(Stanza song, QString splitVerse);
+    void setSongText(QString verse, QString verseTranslation = "", QString splitVerse = "", QString splitVerseTranslation = "", bool isLast = false);
     void setBlank();
     bool isRunning;
 

@@ -433,7 +433,7 @@ void SongWidget::deleteSong()
 }
 
 void SongWidget::addNewSong(Song song, int initial_sid)
-{
+{ // TODO: fix bug, crashes if adding 2 songs with same title in a row.
 
     songs_model->addSong(song);
     allSongs.append(song);

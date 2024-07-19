@@ -150,9 +150,11 @@ SoftProjector::SoftProjector(QWidget *parent)
     ui->toolBarEdit->addAction(ui->action_Help);
 
     ui->toolBarShow->addAction(ui->actionShow);
-    ui->toolBarShow->addAction(ui->actionClear);
     ui->toolBarShow->addAction(ui->actionHide);
-    ui->toolBarShow->addAction(ui->actionCloseDisplay);
+    if (!mySettings.general.disableScreens) {
+        ui->toolBarShow->addAction(ui->actionCloseDisplay);
+        ui->toolBarShow->addAction(ui->actionClear);
+    }
 
     ui->actionShow->setEnabled(false);
     ui->actionHide->setEnabled(false);
@@ -529,20 +531,41 @@ void SoftProjector::setAnnounceText(Announcement announce, int row)
     updateScreen();
 }
 
+/**
+ * @brief SoftProjector::setSongList called on go live, from songwidget preview list or schedule.
+ * @param row the selected verse index of the song preview list.
+ */
 void SoftProjector::setSongList(Song song, int row)
 {
-    QStringList song_list = song.getSongTextList();
     current_song = song;
-    current_song_verse = row;
+    QStringList songTextList = song.getSongTextList(true); // The complete song text with verse titles and translations.
+
+    // Create a list for the rightmost ui list (without translations),
+    // for the http-server a list without verse titles, and a list with just the translation.
+    QStringList song_list;
+    currentSongVerses.clear();
+    currentSongTranslatedVerses.clear();
+
+    foreach (QString verseText, songTextList) {
+        QStringList split = verseText.split("=");
+        song_list.append(split[0].trimmed()); // Add the original language (with verse title) to the ui list.
+        if (split.length() == 2) {
+            currentSongTranslatedVerses.append(split[1].trimmed()); // Add the translation to the translation list.
+        } else {
+            currentSongTranslatedVerses.append(""); // Empty translation because not every verse may be translated.
+        }
+        // Remove verse title and add to currentSongVerses.
+        QStringList splitLines = split[0].split("\n");
+        splitLines.removeFirst();
+        currentSongVerses.append(splitLines.join("\n").trimmed());
+    }
 
     // Display the specified song text in the right-most column of softProjector
     pType = SONG;
+
     ui->widgetMultiVerse->setVisible(false);
     ui->rbMultiVerse->setChecked(false);
     mediaControls->setVisible(false);
-    showing = true;
-    new_list = true;
-    ui->listShow->clear();
     ui->labelIcon->setPixmap(QPixmap(":/icons/icons/song_tab.png").scaled(16,16,Qt::IgnoreAspectRatio,Qt::SmoothTransformation));
     ui->labelShow->setText(song.title);
     if(song.notes.isEmpty())
@@ -552,13 +575,26 @@ void SoftProjector::setSongList(Song song, int row)
         ui->labelSongNotes->setText(QString("%1\n%2").arg(tr("Notes:","Notes to songs")).arg(song.notes));
         ui->labelSongNotes->setVisible(true);
     }
+
+    ui->listShow->blockSignals(true); // So itemSelectionChanged on clear doesnt call updateScreen again, like the old new_list flag.
+    ui->listShow->clear();
     ui->listShow->setSpacing(5);
     ui->listShow->setWordWrap(false);
     ui->listShow->addItems(song_list);
     ui->listShow->setCurrentRow(row);
     ui->listShow->setFocus();
-    new_list = false;
-    updateScreen();
+    ui->listShow->blockSignals(false);
+
+    showing = true;
+
+    if (mySettings.general.httpServerEnabled)
+    {
+        sendSongVerseToServer();
+        ui->actionShow->setEnabled(false);
+        ui->actionHide->setEnabled(true);
+    } else {
+        updateScreen();
+    }
 }
 
 void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QItemSelection selectedItems)
@@ -568,10 +604,10 @@ void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QI
     ui->widgetMultiVerse->setVisible(true);
     mediaControls->setVisible(false);
     showing = true;
-    new_list = true;
     ui->labelIcon->setPixmap(QPixmap(":/icons/icons/book.png").scaled(16,16,Qt::IgnoreAspectRatio,Qt::SmoothTransformation));
     ui->labelShow->setText(caption);
     ui->labelSongNotes->setVisible(false);
+    ui->listShow->blockSignals(true);
     ui->listShow->clear();
     ui->listShow->setSpacing(2);
     ui->listShow->setWordWrap(true);
@@ -584,8 +620,16 @@ void SoftProjector::setChapterList(QStringList chapter_list, QString caption, QI
     ui->listShow->setCurrentRow(selectedItems.first().top());
     ui->listShow->selectionModel()->select(selectedItems,QItemSelectionModel::Select);
     ui->listShow->setFocus();
-    new_list = false;
-    updateScreen();
+    ui->listShow->blockSignals(false);
+
+    if (mySettings.general.httpServerEnabled)
+    {
+        sendBibleVerseToServer();
+        ui->actionShow->setEnabled(false);
+        ui->actionHide->setEnabled(true);
+    } else {
+        updateScreen();
+    }
 }
 
 void SoftProjector::setPictureList(QList<SlideShowItem> &image_list,int row,QString name)
@@ -693,10 +737,22 @@ void SoftProjector::on_listShow_itemSelectionChanged()
     // Called when the user selects a different row in the show (right-most) list.
     // First check if ratio button "Multi Verse" is check. If so, make button "Show"
     // enable and update screen only after show_botton is clicked.
-    if(ui->rbMultiVerse->isChecked())
+    if (ui->rbMultiVerse->isChecked()) {
         ui->actionShow->setEnabled(true);
-    else
-        updateScreen();
+        return;
+    }
+    if (mySettings.general.httpServerEnabled)
+    {
+        if (showing) {
+            if (pType == BIBLE) {
+                sendBibleVerseToServer();
+            } else if (pType == SONG) {
+                sendSongVerseToServer();
+            }
+        }
+        return;
+    }
+    updateScreen();
 }
 
 void SoftProjector::updateScreen()
@@ -729,11 +785,6 @@ void SoftProjector::updateScreen()
         ui->actionShow->setEnabled(true);
         ui->actionHide->setEnabled(false);
         ui->actionClear->setEnabled(false);
-
-        if (mySettings.general.httpServerEnabled)
-        {
-            webSocketServer->setBlank();
-        }
     }
     else if ((currentRow >=0 || pType == VIDEO)  && !new_list)
     {
@@ -768,7 +819,6 @@ void SoftProjector::updateScreen()
         switch (pType)
         {
         case BIBLE:
-            showSongVerseSplit(false); // Don't show during bible.
             showBible();
             break;
         case SONG:
@@ -817,13 +867,11 @@ void SoftProjector::showBible()
                                                             mySettings.bibleSets),theme.bible);
         }
     }
-
-    if(mySettings.general.httpServerEnabled)
-    {
-        webSocketServer->setBibleText(bibleWidget->bible.getCurrentVerseAndCaption(currentRows,theme.bible, mySettings.bibleSets));
-    }
 }
 
+/*
+ * @param currentRow the selected verse index of the song preview or rightmost lists.
+ */
 void SoftProjector::showSong(int currentRow)
 {
     // Get Song Settings
@@ -848,13 +896,6 @@ void SoftProjector::showSong(int currentRow)
         {
             pds2->renderSongText(current_song.getStanza(currentRow),s1);
         }
-    }
-
-    if(mySettings.general.httpServerEnabled && !songSplitVerse)
-    { // Sends just the full verse.
-        webSocketServer->setSongText(current_song.getStanza(currentRow), "");
-    } else {
-        splitSongVerse(current_song.getStanza(currentRow).stanza);
     }
 }
 
@@ -898,18 +939,38 @@ void SoftProjector::showVideo()
 void SoftProjector::on_actionShow_triggered()
 {
     showing = true;
-    if (ui->songVerseSplitListWidget->hasFocus()) {
+    if (mySettings.general.httpServerEnabled)
+    {
+        if (pType == BIBLE) {
+            sendBibleVerseToServer();
+        } else if (pType == SONG) {
+            if (ui->songVerseSplitListWidget->hasFocus()) {
+                sendSongVerseSplit(); // Resume song verse split display.
+            } else {
+                sendSongVerseToServer();
+            }
+        }
+
         ui->actionShow->setEnabled(false);
         ui->actionHide->setEnabled(true);
-        sendSongVerseSplit(); // Resume song verse split display.
-    } else {
-        updateScreen();
+        return;
     }
+
+    updateScreen();
 }
 
 void SoftProjector::on_actionHide_triggered()
 {
     showing = false;
+    if (mySettings.general.httpServerEnabled)
+    {
+        webSocketServer->setBlank();
+
+        ui->actionShow->setEnabled(true);
+        ui->actionHide->setEnabled(false);
+        return;
+    }
+
     updateScreen();
 }
 
@@ -922,11 +983,6 @@ void SoftProjector::on_actionClear_triggered()
     }
     ui->actionClear->setEnabled(false);
     ui->actionShow->setEnabled(true);
-//    ui->actionHide->setEnabled(false);
-    if (mySettings.general.httpServerEnabled)
-    {
-        webSocketServer->setBlank();
-    }
 }
 
 void SoftProjector::on_actionCloseDisplay_triggered()
@@ -968,8 +1024,21 @@ void SoftProjector::on_actionSettings_triggered()
 
 void SoftProjector::on_listShow_doubleClicked(QModelIndex index)
 {
-    // Called when the user double clicks on a row in the preview table.
+    // Called when the user double clicks on a row in the rightmost table.
     showing = true;
+    if (mySettings.general.httpServerEnabled)
+    {
+        if (pType == BIBLE) {
+            sendBibleVerseToServer();
+        } else if (pType == SONG) {
+            sendSongVerseToServer();
+        }
+
+        ui->actionShow->setEnabled(false);
+        ui->actionHide->setEnabled(true);
+        return;
+    }
+
     updateScreen();
 }
 
@@ -2555,6 +2624,41 @@ void SoftProjector::openScheduleItem(QSqlQuery &q, const int scid, Announcement 
     a.alignmentH = q.value(13).toInt();
 }
 
+
+void SoftProjector::sendBibleVerseToServer()
+{
+    showSongVerseSplit(false); // Don't show song split ui during bible.
+
+
+    int srows(ui->listShow->count());
+    QList<int> currentRows;
+    for(int i(0); i<srows; ++i)
+    {
+        if(ui->listShow->item(i)->isSelected())
+            currentRows.append(i);
+    }
+    webSocketServer->setBibleText(bibleWidget->bible.getCurrentVerseAndCaption(currentRows,theme.bible, mySettings.bibleSets));
+}
+
+/*
+ * Called on go live with http server enabled.
+ */
+void SoftProjector::sendSongVerseToServer()
+{
+    int currentVerseIndex = ui->listShow->currentRow();
+
+    if(!songSplitVerse)
+    { // Sends  the full verse.
+        webSocketServer->setSongText(
+                        currentSongVerses[currentVerseIndex],
+                        currentSongTranslatedVerses[currentVerseIndex],
+                        "", "", (currentSongVerses.count() == currentVerseIndex + 1)
+                    );
+    } else {
+        setSongVerseSplitList(currentVerseIndex);
+    }
+}
+
 void SoftProjector::showSongVerseSplit(bool enabled)
 {
     songSplitVerse = enabled;
@@ -2564,15 +2668,10 @@ void SoftProjector::showSongVerseSplit(bool enabled)
     }
 }
 
-/*
- * Split the current song verse into lines.
- * Sends a couple of lines at a time for output display.
-*/
-void SoftProjector::splitSongVerse(QString stanza, QString selectRow)
-{
-    // Group into 2's. If verse has odd amount of lines, last group will include 3.
+QStringList SoftProjector::splitSongVerse(QString verse)
+{ // Group into 2's. If verse has odd amount of lines, last group will include 3.
     QStringList splitList;
-    QStringList oneLines = stanza.split("\n");
+    QStringList oneLines = verse.split("\n");
     int splitListCount = oneLines.count();
     int evenGroups = splitListCount / 2;
     int remaining =  splitListCount % 2;
@@ -2598,14 +2697,32 @@ void SoftProjector::splitSongVerse(QString stanza, QString selectRow)
         line = line + 2;
     }
 
+    return splitList;
+}
+
+/**
+ * @param currentVerseIndex the selected verse index in ui->listShow
+ * @param selectRow "last" to select last split lines (when navigating back).
+ */
+void SoftProjector::setSongVerseSplitList(int currentVerseIndex, QString selectRow)
+{
+    currentSongVerseSplitList = splitSongVerse(currentSongVerses[currentVerseIndex]);
+    QString translatedVerse = currentSongTranslatedVerses[currentVerseIndex];
+    if (translatedVerse == "") {
+        // Not every verse is translated, fill with empty strings.
+        currentSongTranslatedVerseSplitList = QVector<QString>(currentSongVerseSplitList.count(), "").toList();
+    } else {
+        currentSongTranslatedVerseSplitList = splitSongVerse(currentSongTranslatedVerses[currentVerseIndex]);
+    }
+
     ui->songVerseSplitLayoutWidget->setVisible(true);
     ui->songVerseSplitListWidget->blockSignals(true);
     ui->songVerseSplitListWidget->clear();
     ui->songVerseSplitListWidget->blockSignals(false);
     ui->songVerseSplitListWidget->setSpacing(5);
     ui->songVerseSplitListWidget->setWordWrap(false);
-    ui->songVerseSplitListWidget->addItems(splitList);
-    ui->songVerseSplitListWidget->setCurrentRow(selectRow == "last" ? (splitList.count() - 1) : 0);
+    ui->songVerseSplitListWidget->addItems(currentSongVerseSplitList); // signals itemSelectionChanged() to send split to server.
+    ui->songVerseSplitListWidget->setCurrentRow(selectRow == "last" ? (currentSongVerseSplitList.count() - 1) : 0);
     ui->songVerseSplitListWidget->setFocus();
 }
 
@@ -2613,9 +2730,15 @@ void SoftProjector::splitSongVerse(QString stanza, QString selectRow)
  * Send the current song verse lines to the server.
 */
 void SoftProjector::sendSongVerseSplit() {
-    int currentVerseRow = ui->listShow->currentRow();
-    QString verseSplit = ui->songVerseSplitListWidget->currentItem()->text();
-    webSocketServer->setSongText(current_song.getStanza(currentVerseRow), verseSplit);
+    int currentVerseIndex = ui->listShow->currentRow();
+    int currentVerseSplitIndex = ui->songVerseSplitListWidget->currentRow();
+    webSocketServer->setSongText(
+                    currentSongVerses[currentVerseIndex],
+                    currentSongTranslatedVerses[currentVerseIndex],
+                    currentSongVerseSplitList[currentVerseSplitIndex],
+                    currentSongTranslatedVerseSplitList[currentVerseSplitIndex],
+                    (currentSongVerses.count() == currentVerseIndex + 1)
+                );
 }
 
 void SoftProjector::on_songVerseSplitListWidget_itemSelectionChanged()
@@ -2647,7 +2770,7 @@ void SoftProjector::on_songVerseSplitListWidgetNavigation(Qt::Key key) {
         ui->listShow->blockSignals(true); // Block itemSelectionChanged(), which would show the first split line.
         ui->listShow->setCurrentRow(ui->listShow->currentRow() - 1);
         ui->listShow->blockSignals(false);
-        splitSongVerse(current_song.getStanza((ui->listShow->currentRow())).stanza, "last");
+        setSongVerseSplitList(ui->listShow->currentRow(), "last");
     } else if (key == Qt::Key_Down && (ui->songVerseSplitListWidget->currentRow() == (ui->songVerseSplitListWidget->count() - 1))) {
         // Go to the next verse.
         nextSlide(); // Same as pressing the Right key.

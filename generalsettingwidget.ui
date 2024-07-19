@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>354</width>
-    <height>453</height>
+    <width>371</width>
+    <height>519</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -301,7 +301,7 @@
    <item>
     <widget class="QGroupBox" name="gridGroupBox">
      <property name="title">
-      <string>HTTP Server</string>
+      <string>HTTP Server (changes require restart)</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_5">
       <property name="leftMargin">

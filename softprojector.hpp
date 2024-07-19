@@ -83,6 +83,10 @@ public:
     bool showing; // whether we are currently showing to the projector
     Song current_song;
     int current_song_verse;
+    QStringList currentSongVerses; // List of song verse blocks.
+    QStringList currentSongTranslatedVerses; // List of translation-only verse blocks.
+    QStringList currentSongVerseSplitList; // List of the current verse split into lines.
+    QStringList currentSongTranslatedVerseSplitList; // List of the current translation-only verse split into lines.
     Verse current_verse;
     Announcement currentAnnounce;
     QString version_string;
@@ -251,9 +255,12 @@ private slots:
     void on_actionCloseDisplay_triggered();
     void updateCloseDisplayButtons(bool isOn);
 
+    void sendBibleVerseToServer();
+    void sendSongVerseToServer();
     void showSongVerseSplit(bool enabled);
     void sendSongVerseSplit();
-    void splitSongVerse(QString stanza, QString selectRow = "first");
+    QStringList splitSongVerse(QString verse);
+    void setSongVerseSplitList(int currentVerseIndex, QString selectRow = "first");
     void on_songVerseSplitListWidget_itemSelectionChanged();
     void on_songVerseSplitListWidget_itemDoubleClicked(QListWidgetItem *item);
     void on_songVerseSplitListWidgetNavigation(Qt::Key);

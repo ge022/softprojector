@@ -104,20 +104,17 @@ void WebSocketServer::setBibleText(Verse verse)
     sendToClients();
 }
 
-void WebSocketServer::setSongText(Stanza song, QString verseSplit)
+void WebSocketServer::setSongText(QString verse, QString verseTranslation, QString splitVerse, QString splitVerseTranslation, bool isLast)
 {
     jsonOutput = QJsonObject();
 
     QJsonObject jsonSong;
 
-    jsonSong["stanza"] = song.stanza;
-    jsonSong["title"] = song.stanzaTitle;
-    jsonSong["tune"] = song.tune;
-    jsonSong["wordsBy"] = song.wordsBy;
-    jsonSong["musicBy"] = song.musicBy;
-    jsonSong["number"] = song.number;
-    jsonSong["isLast"] = song.isLast;
-    jsonSong["split"] = verseSplit;
+    jsonSong["verse"] = verse;
+    jsonSong["verseTranslation"] = verseTranslation;
+    jsonSong["split"] = splitVerse;
+    jsonSong["splitTranslation"] = splitVerseTranslation;
+    jsonSong["isLast"] = isLast;
 
     jsonOutput["song"] = jsonSong;
 

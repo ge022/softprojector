@@ -18,6 +18,7 @@
 ***************************************************************************/-->
 
 <html>
+
 <head>
     <title></title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -25,30 +26,34 @@
     <!-- Style for projector
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=block');
+
         * {
             margin: 0;
-            padding: 0p;
+            padding: 0;
         }
+
         body {
             width: 1860px;
             height: 1040px;
             padding: 20px 30px;
             font-family: 'Roboto', sans-serif;
             font-weight: 700;
+            position: relative;
         }
 
         p {
             margin: 0;
             color: #fff;
             text-shadow: 3px 3px 1px #000;
-            white-space: pre-wrap; /* For the line breaks in song text */
+            white-space: pre-wrap;
+            /* For the line breaks in song text */
         }
 
-        #bible, #song {
-            display: flex;
+        #bible {
             flex-direction: column;
             height: 1040px;
             width: 1860px;
+            display: none;
         }
 
         #bible #primary,
@@ -71,10 +76,12 @@
         }
 
         #song {
-            display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
+            height: 1040px;
+            width: 1860px;
+            display: none;
         }
 
         #song .textFitted {
@@ -93,15 +100,41 @@
             z-index: -1;
             font-size: 0.6em;
         }
-    </style>-->
 
+        #song-translation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 122px;
+            width: 1860px;
+            display: none;
+        }
+
+        #song-translation p {
+            white-space: normal;
+        }
+
+        #song-translation-divider {
+            border-top: 3px solid #000;
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            height: 122px;
+            width: 1920px;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+            display: none;
+        }
+    </style> -->
 
     <!-- Style for stream (lower third)
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400,700&display=block');
         * {
             margin: 0;
-            padding: 0p;
+            padding: 0;
         }
         body {
             width: 1860px;
@@ -109,12 +142,15 @@
             padding: 20px 30px;
             font-family: 'Roboto', sans-serif;
             display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
         }
 
         p {
             margin: 0;
             color: #fff;
             text-shadow: 3px 3px 1px #000;
+            white-space: pre-wrap;
         }
 
         #primary {
@@ -141,10 +177,6 @@
             font-weight: 700;
         }
 
-        #bible p {
-            white-space: pre-wrap;
-        }
-
         #bible .text {
             margin-bottom: 8px;
         }
@@ -167,42 +199,70 @@
         }
 
         #song.full-verse p {
-            white-space: pre-wrap;
-            line-height: 55px;
+            line-height: 1.25;
+            white-space: pre;
+        }
+
+        #song.verse-split {
+            justify-content: flex-end;
+        }
+
+        #song.verse-split .textFitted {
+            min-height: 215px;
         }
 
         #song.verse-split .text {
-            padding-top: 750px;
             text-align: center;
         }
 
         #song.verse-split p {
-            white-space: pre;
             line-height: 1.1;
+            white-space: pre;
         }
 
         #last-indicator {
             display: none;
         }
+
+        #song-split-translation {
+            display: none;
+            height: 100px;
+            width: 1860px;
+            text-align: center;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        #song-split-translation p {
+            white-space: normal;
+        }
     </style> -->
 </head>
+
 <body>
     <div id="bible">
         <div id="primary">
-            <p class="text">&nbps;&nbps;&nbps;&nbps;</p>
-            <p class="reference">&nbps;&nbps;</p>
+            <p class="text">&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <p class="reference">&nbsp;&nbsp;</p>
         </div>
         <div id="secondary">
-            <p class="text">&nbps;&nbps;&nbps;&nbps;</p>
-            <p class="reference">&nbps;&nbps;</p>
+            <p class="text">&nbsp;&nbsp;&nbsp;&nbsp;</p>
+            <p class="reference">&nbsp;&nbsp;</p>
         </div>
     </div>
     <div id="song">
         <p class="text"></p>
         <p id="last-indicator" style="visibility: hidden;">*&nbsp;&nbsp;*&nbsp;&nbsp;*</p>
     </div>
+    <div id="song-translation-divider"></div>
+    <div id="song-translation">
+        <p class="text"></p>
+    </div>
+    <div id="song-split-translation">
+        <p class="text"></p>
+    </div>
 
-    <script>(function(root,factory){"use strict";if(typeof define==="function"&&define.amd){define([],factory)}else if(typeof exports==="object"){module.exports=factory()}else{root.textFit=factory()}})(typeof global==="object"?global:this,function(){"use strict";var defaultSettings={alignVert:false,alignHoriz:false,multiLine:false,detectMultiLine:true,minFontSize:6,maxFontSize:80,reProcess:true,widthOnly:false,alignVertWithFlexbox:false};return function textFit(els,options){if(!options)options={};var settings={};for(var key in defaultSettings){if(options.hasOwnProperty(key)){settings[key]=options[key]}else{settings[key]=defaultSettings[key]}}if(typeof els.toArray==="function"){els=els.toArray()}var elType=Object.prototype.toString.call(els);if(elType!=="[object Array]"&&elType!=="[object NodeList]"&&elType!=="[object HTMLCollection]"){els=[els]}for(var i=0;i<els.length;i++){processItem(els[i],settings)}};function processItem(el,settings){if(!isElement(el)||!settings.reProcess&&el.getAttribute("textFitted")){return false}if(!settings.reProcess){el.setAttribute("textFitted",1)}var innerSpan,originalHeight,originalHTML,originalWidth;var low,mid,high;originalHTML=el.innerHTML;originalWidth=innerWidth(el);originalHeight=innerHeight(el);if(!originalWidth||!settings.widthOnly&&!originalHeight){if(!settings.widthOnly)throw new Error("Set a static height and width on the target element "+el.outerHTML+" before using textFit!");else throw new Error("Set a static width on the target element "+el.outerHTML+" before using textFit!")}if(originalHTML.indexOf("textFitted")===-1){innerSpan=document.createElement("span");innerSpan.className="textFitted";innerSpan.style["display"]="inline-block";innerSpan.innerHTML=originalHTML;el.innerHTML="";el.appendChild(innerSpan)}else{innerSpan=el.querySelector("span.textFitted");if(hasClass(innerSpan,"textFitAlignVert")){innerSpan.className=innerSpan.className.replace("textFitAlignVert","");innerSpan.style["height"]="";el.className.replace("textFitAlignVertFlex","")}}if(settings.alignHoriz){el.style["text-align"]="center";innerSpan.style["text-align"]="center"}var multiLine=settings.multiLine;if(settings.detectMultiLine&&!multiLine&&innerSpan.scrollHeight>=parseInt(window.getComputedStyle(innerSpan)["font-size"],10)*2){multiLine=true}if(!multiLine){el.style["white-space"]="nowrap"}low=settings.minFontSize;high=settings.maxFontSize;var size=low;while(low<=high){mid=high+low>>1;innerSpan.style.fontSize=mid+"px";if(innerSpan.scrollWidth<=originalWidth&&(settings.widthOnly||innerSpan.scrollHeight<=originalHeight)){size=mid;low=mid+1}else{high=mid-1}}if(innerSpan.style.fontSize!=size+"px")innerSpan.style.fontSize=size+"px";if(settings.alignVert){addStyleSheet();var height=innerSpan.scrollHeight;if(window.getComputedStyle(el)["position"]==="static"){el.style["position"]="relative"}if(!hasClass(innerSpan,"textFitAlignVert")){innerSpan.className=innerSpan.className+" textFitAlignVert"}innerSpan.style["height"]=height+"px";if(settings.alignVertWithFlexbox&&!hasClass(el,"textFitAlignVertFlex")){el.className=el.className+" textFitAlignVertFlex"}}}function innerHeight(el){var style=window.getComputedStyle(el,null);return el.clientHeight-parseInt(style.getPropertyValue("padding-top"),10)-parseInt(style.getPropertyValue("padding-bottom"),10)}function innerWidth(el){var style=window.getComputedStyle(el,null);return el.clientWidth-parseInt(style.getPropertyValue("padding-left"),10)-parseInt(style.getPropertyValue("padding-right"),10)}function isElement(o){return typeof HTMLElement==="object"?o instanceof HTMLElement:o&&typeof o==="object"&&o!==null&&o.nodeType===1&&typeof o.nodeName==="string"}function hasClass(element,cls){return(" "+element.className+" ").indexOf(" "+cls+" ")>-1}function addStyleSheet(){if(document.getElementById("textFitStyleSheet"))return;var style=[".textFitAlignVert{","position: absolute;","top: 0; right: 0; bottom: 0; left: 0;","margin: auto;","display: flex;","justify-content: center;","flex-direction: column;","}",".textFitAlignVertFlex{","display: flex;","}",".textFitAlignVertFlex .textFitAlignVert{","position: static;","}"].join("");var css=document.createElement("style");css.type="text/css";css.id="textFitStyleSheet";css.innerHTML=style;document.body.appendChild(css)}});</script>
+    <script>(function (root, factory) { "use strict"; if (typeof define === "function" && define.amd) { define([], factory) } else if (typeof exports === "object") { module.exports = factory() } else { root.textFit = factory() } })(typeof global === "object" ? global : this, function () { "use strict"; var defaultSettings = { alignVert: false, alignHoriz: false, multiLine: false, detectMultiLine: true, minFontSize: 6, maxFontSize: 80, reProcess: true, widthOnly: false, alignVertWithFlexbox: false }; return function textFit(els, options) { if (!options) options = {}; var settings = {}; for (var key in defaultSettings) { if (options.hasOwnProperty(key)) { settings[key] = options[key] } else { settings[key] = defaultSettings[key] } } if (typeof els.toArray === "function") { els = els.toArray() } var elType = Object.prototype.toString.call(els); if (elType !== "[object Array]" && elType !== "[object NodeList]" && elType !== "[object HTMLCollection]") { els = [els] } for (var i = 0; i < els.length; i++) { processItem(els[i], settings) } }; function processItem(el, settings) { if (!isElement(el) || !settings.reProcess && el.getAttribute("textFitted")) { return false } if (!settings.reProcess) { el.setAttribute("textFitted", 1) } var innerSpan, originalHeight, originalHTML, originalWidth; var low, mid, high; originalHTML = el.innerHTML; originalWidth = innerWidth(el); originalHeight = innerHeight(el); if (!originalWidth || !settings.widthOnly && !originalHeight) { if (!settings.widthOnly) throw new Error("Set a static height and width on the target element " + el.outerHTML + " before using textFit!"); else throw new Error("Set a static width on the target element " + el.outerHTML + " before using textFit!") } if (originalHTML.indexOf("textFitted") === -1) { innerSpan = document.createElement("span"); innerSpan.className = "textFitted"; innerSpan.style["display"] = "inline-block"; innerSpan.innerHTML = originalHTML; el.innerHTML = ""; el.appendChild(innerSpan) } else { innerSpan = el.querySelector("span.textFitted"); if (hasClass(innerSpan, "textFitAlignVert")) { innerSpan.className = innerSpan.className.replace("textFitAlignVert", ""); innerSpan.style["height"] = ""; el.className.replace("textFitAlignVertFlex", "") } } if (settings.alignHoriz) { el.style["text-align"] = "center"; innerSpan.style["text-align"] = "center" } var multiLine = settings.multiLine; if (settings.detectMultiLine && !multiLine && innerSpan.scrollHeight >= parseInt(window.getComputedStyle(innerSpan)["font-size"], 10) * 2) { multiLine = true } if (!multiLine) { el.style["white-space"] = "nowrap" } low = settings.minFontSize; high = settings.maxFontSize; var size = low; while (low <= high) { mid = high + low >> 1; innerSpan.style.fontSize = mid + "px"; if (innerSpan.scrollWidth <= originalWidth && (settings.widthOnly || innerSpan.scrollHeight <= originalHeight)) { size = mid; low = mid + 1 } else { high = mid - 1 } } if (innerSpan.style.fontSize != size + "px") innerSpan.style.fontSize = size + "px"; if (settings.alignVert) { addStyleSheet(); var height = innerSpan.scrollHeight; if (window.getComputedStyle(el)["position"] === "static") { el.style["position"] = "relative" } if (!hasClass(innerSpan, "textFitAlignVert")) { innerSpan.className = innerSpan.className + " textFitAlignVert" } innerSpan.style["height"] = height + "px"; if (settings.alignVertWithFlexbox && !hasClass(el, "textFitAlignVertFlex")) { el.className = el.className + " textFitAlignVertFlex" } } } function innerHeight(el) { var style = window.getComputedStyle(el, null); return el.clientHeight - parseInt(style.getPropertyValue("padding-top"), 10) - parseInt(style.getPropertyValue("padding-bottom"), 10) } function innerWidth(el) { var style = window.getComputedStyle(el, null); return el.clientWidth - parseInt(style.getPropertyValue("padding-left"), 10) - parseInt(style.getPropertyValue("padding-right"), 10) } function isElement(o) { return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string" } function hasClass(element, cls) { return (" " + element.className + " ").indexOf(" " + cls + " ") > -1 } function addStyleSheet() { if (document.getElementById("textFitStyleSheet")) return; var style = [".textFitAlignVert{", "position: absolute;", "top: 0; right: 0; bottom: 0; left: 0;", "margin: auto;", "display: flex;", "justify-content: center;", "flex-direction: column;", "}", ".textFitAlignVertFlex{", "display: flex;", "}", ".textFitAlignVertFlex .textFitAlignVert{", "position: static;", "}"].join(""); var css = document.createElement("style"); css.type = "text/css"; css.id = "textFitStyleSheet"; css.innerHTML = style; document.body.appendChild(css) } });</script>
 
     <script type="text/javascript">
         var wsUri = "ws://${ipAddress}:${webSocketPort}";
@@ -214,10 +274,15 @@
             document.querySelector("#bible #secondary .text").textContent = "";
             document.querySelector("#bible #secondary .reference").textContent = "";
             document.querySelector("#song .text").textContent = "";
+            document.querySelector("#song-translation .text").textContent = "";
+            document.querySelector("#song-split-translation .text").textContent = "";
             document.querySelector("#song #last-indicator").style.visibility = "hidden";
             document.querySelector("#song").classList.remove("full-verse", "verse-split");
             document.querySelector("#bible").style.display = "none";
             document.querySelector("#song").style.display = "none";
+            document.querySelector("#song-translation").style.display = "none";
+            document.querySelector("#song-translation-divider").style.display = "none";
+            document.querySelector("#song-split-translation").style.display = "none";
         }
 
         function displayBible(bible) {
@@ -225,12 +290,12 @@
             if (window.getComputedStyle(document.querySelector('#primary')).display !== 'none') {
                 document.querySelector("#bible #primary .text").textContent = bible.primary.verse;
                 document.querySelector("#bible #primary .reference").textContent = bible.primary.reference;
-                textFit(document.querySelector('#primary'), {maxFontSize: 82});
+                textFit(document.querySelector('#primary'), { maxFontSize: 82 });
             }
             if (window.getComputedStyle(document.querySelector('#secondary')).display !== 'none') {
                 document.querySelector("#bible #secondary .text").textContent = bible.secondary.verse;
                 document.querySelector("#bible #secondary .reference").textContent = bible.secondary.reference;
-                textFit(document.querySelector('#secondary'), {maxFontSize: 82});
+                textFit(document.querySelector('#secondary'), { maxFontSize: 82 });
             }
         }
 
@@ -238,19 +303,52 @@
             document.querySelector("#song").style.display = "flex";
             if (window.getComputedStyle(document.querySelector('#last-indicator')).display !== 'none') {
                 // Projector styling.
-                document.querySelector("#song .text").textContent = song.stanza;
-                textFit(document.querySelector('#song'), {maxFontSize: 95});
+                if (!!song.splitTranslation) {
+                    document.querySelector("body").style.paddingBottom = "0px";
+                    document.querySelector("body").style.height = "1060px";
+                    document.querySelector("#song-translation").style.display = "flex";
+
+                    if (song.splitTranslation.length <= 162) {
+                        // One or two lines of text box height.
+                        document.querySelector("#song").style.height = "937px";
+                        document.querySelector("#song-translation").style.height = "122px";
+                        document.querySelector("#song-translation-divider").style.height = "122px";
+                    } else {
+                        // Approx three lines, bigger text box.
+                        document.querySelector("#song").style.height = "878px";
+                        document.querySelector("#song-translation").style.height = "181px";
+                        document.querySelector("#song-translation-divider").style.height = "181px";
+                    }
+
+                    document.querySelector("#song-translation-divider").style.display = "block";
+                    document.querySelector("#song-translation .text").textContent = song.splitTranslation;
+                    textFit(document.querySelector('#song-translation'), { maxFontSize: 50 });
+                } else {
+                    document.querySelector("body").style.height = "1040px";
+                    document.querySelector("body").style.paddingBottom = "20px";
+                    document.querySelector("#song").style.height = "1040px";
+                    document.querySelector("#song-translation-divider").style.display = "none";
+                }
+                document.querySelector("#song .text").textContent = song.verse;
+                textFit(document.querySelector('#song'), { maxFontSize: 95 });
                 document.querySelector("#song #last-indicator").style.visibility = (!!song.isLast ? "visible" : "hidden");
             } else if (song.split.length != 0) {
                 // Lower-thirds styling for verse split.
+                document.querySelector("#song").style.height = "940px";
+
                 document.querySelector("#song").classList.add("verse-split");
                 document.querySelector("#song .text").textContent = song.split;
-                textFit(document.querySelector('#song'), {maxFontSize: 65});
+                textFit(document.querySelector('#song'), { maxFontSize: 65 });
+
+                document.querySelector("#song-split-translation .text").textContent = song.splitTranslation;
+                document.querySelector("#song-split-translation").style.display = "flex";
+                textFit(document.querySelector('#song-split-translation'), { maxFontSize: 36 });
             } else {
                 // Lower-thirds styling for full verse.
+                document.querySelector("#song").style.height = "1040px";
                 document.querySelector("#song").classList.add("full-verse");
-                document.querySelector("#song .text").textContent = song.stanza;
-                textFit(document.querySelector('#song'), {maxFontSize: 44});
+                document.querySelector("#song .text").textContent = song.verse;
+                textFit(document.querySelector('#song'), { maxFontSize: 44 });
             }
         }
 
@@ -258,9 +356,9 @@
             clearText();
             var text = JSON.parse(event.data);
             if (text.bible !== undefined) {
-             displayBible(text.bible);
+                displayBible(text.bible);
             } else if (text.song !== undefined) {
-             displaySong(text.song);
+                displaySong(text.song);
             }
         }
 
@@ -268,9 +366,9 @@
             try {
                 if (typeof MozWebSocket == 'function')
                     WebSocket = MozWebSocket;
-                if ( websocket && websocket.readyState == 1 )
+                if (websocket && websocket.readyState == 1)
                     websocket.close();
-                websocket = new WebSocket( wsUri );
+                websocket = new WebSocket(wsUri);
                 websocket.onmessage = function (event) {
                     displayText(event.data);
                 };
@@ -292,4 +390,5 @@
         };
     </script>
 </body>
+
 </html>

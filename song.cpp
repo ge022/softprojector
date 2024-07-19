@@ -161,6 +161,30 @@ bool isStanzaSlideTitle(QString string)
         return false;
 }
 
+QString getStanzaBlock(int &i, QStringList &list, bool includeTranslation)
+{
+    QString line,block;
+    int j(i);
+
+    while(i < list.count())
+    {
+        line = list.at(i);
+        if(includeTranslation == false && line.contains(QRegExp("^="))) { break; } // Doesn't include translations in the ui lists.
+        if(line.contains(QRegExp("^&")))
+            line.remove("&");
+
+        if(isStanzaTitle(line) && (i!=j))
+        {
+                i--;
+            break;
+        }
+        block += line + "\n";
+        ++i;
+    }
+
+    return block.trimmed();
+}
+
 Song::Song()
 {
     // initialize songId to be zero at start;
@@ -248,7 +272,7 @@ void Song::readData()
     background.loadFromData(sq.value(20).toByteArray());
 }
 
-QStringList Song::getSongTextList()
+QStringList Song::getSongTextList(bool includeTranslation)
 {
     // This function prepares a song list that will be shown in the song preview and show list.
     // It will it will automatically prepare correct sining order of verses and choruses.
@@ -270,7 +294,7 @@ QStringList Song::getSongTextList()
         if(isStanzaVerseTitle(line))
         {
             // Fill Verse
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
             formatedSong.append(text);
 
             if (has_chorus)// add Chorus stansa to the formated list if it exists
@@ -282,7 +306,7 @@ QStringList Song::getSongTextList()
         {
 
             // Fill Additional parts of the verse
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
             // it chorus esits, this means that it was added to the formated list
             // and needs to be removed before adding addintion Veres stansas to formated list
             if(has_chorus)
@@ -298,7 +322,7 @@ QStringList Song::getSongTextList()
         else if (isStanzaSlideTitle(line))
         {
             // Fill Insert
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
             formatedSong.append(text);
 
             // Chorus is not added to Insert, if one is needed,
@@ -309,7 +333,7 @@ QStringList Song::getSongTextList()
         else if (isStanzaRefrainTitle(line))
         {
             // Fill Chorus
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
             QStringList chorusold = chorus;
             chorus.clear();
             chorus.append(text);
@@ -338,7 +362,7 @@ QStringList Song::getSongTextList()
         else if(isStanzaAndRefrainTitle(line))
         {
             // Fill other chorus parts to Chorus block
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
 
             removeLastChorus(chorus,formatedSong);
             chorus.append(text);
@@ -350,39 +374,19 @@ QStringList Song::getSongTextList()
     return formatedSong;
 }
 
-QString Song::getStanzaBlock(int &i, QStringList &list)
-{
-    QString line,block;
-    int j(i);
-
-    while(i < list.count())
-    {
-        line = list.at(i);
-        if(line.contains(QRegExp("^&")))
-            line.remove("&");
-
-        if(isStanzaTitle(line) && (i!=j))
-        {
-                i--;
-            break;
-        }
-        block += line + "\n";
-        ++i;
-    }
-
-    return block.trimmed();
-}
-
 void Song::removeLastChorus(QStringList ct, QStringList &list)
 {
     for(int i(0);i<ct.count();++i)
         list.removeLast();
 }
 
+/*
+ * @param current the selected verse index of the song preview or rightmost lists.
+ */
 Stanza Song::getStanza(int current)
 {
     Stanza stanza;
-    QStringList song_list = getSongTextList();
+    QStringList song_list = getSongTextList(); // the list of built blocks
     stanza.isLast = (current == song_list.count()-1);
     stanza.number = number;
     stanza.tune = tune;
