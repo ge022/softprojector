@@ -676,14 +676,10 @@ void SongWidget::setSearchActive()
 }
 
 /*
- * Hide the song verse split list.
- * It is only initially shown when going live through sendToProjector()
- * This allows split to be disabled during live for if not intended.
+ * Show/Hide the song verse split list.
  */
 void SongWidget::on_enableSplitVerseCheckBox_toggled(bool checked)
 {
-    if (!checked) {
-        emit enableSongSplitVerse(false);
-    }
+    emit enableSongSplitVerse(checked);
 }
 

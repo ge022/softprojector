@@ -190,6 +190,7 @@ void EditWidget::resetUiItems()
     ui->lineEditKey->setText(ss.tune);
     ui->comboBoxCategory->setCurrentIndex(cat_ids.indexOf(ss.category));
     ui->checkBoxSongSettings->setChecked(ss.usePrivateSettings);
+    ui->checkBoxUseTranslation->setChecked(ss.useTranslation);
     ui->groupBoxSettings->setVisible(ss.usePrivateSettings);
     ui->comboBoxVAlignment->setCurrentIndex(ss.alignmentV);
     ui->comboBoxHAlignment->setCurrentIndex(ss.alignmentH);
@@ -215,6 +216,7 @@ void EditWidget::setUiItems()
     ui->lineEditKey->setText(editSong.tune);
     ui->comboBoxCategory->setCurrentIndex(cat_ids.indexOf(editSong.category));
     setSongbook(editSong.songID);
+    ui->checkBoxUseTranslation->setChecked(editSong.useTranslation);
     ui->checkBoxSongSettings->setChecked(editSong.usePrivateSettings);
     ui->groupBoxSettings->setVisible(editSong.usePrivateSettings);
     ui->comboBoxVAlignment->setCurrentIndex(editSong.alignmentV);
@@ -244,6 +246,7 @@ void EditWidget::setSave(){
     newSong.songText = ui->textEditSong->toPlainText().trimmed();
     newSong.alignmentV = ui->comboBoxVAlignment->currentIndex();
     newSong.alignmentH = ui->comboBoxHAlignment->currentIndex();
+    newSong.useTranslation = ui->checkBoxUseTranslation->isChecked();
     newSong.usePrivateSettings = ui->checkBoxSongSettings->isChecked();
     newSong.useBackground = ui->checkBoxUseBackground->isChecked();
     newSong.backgroundName = ui->lineEditBackgroundPath->text();

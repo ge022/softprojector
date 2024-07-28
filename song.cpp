@@ -229,6 +229,7 @@ void Song::setDefaults()
     backgroundName = "";
     background = QPixmap();
     notes = "";
+    useTranslation = false;
 }
 
 void Song::readData()
@@ -236,10 +237,10 @@ void Song::readData()
     QSqlQuery sq;
     //              0               1       2     3        4    5      6       7         8
     //        9               10        11          12     13    14            15          16         17
-    //        18                19              20
+    //        18                19              20         21
     sq.exec("SELECT songbook_id, number, title, category, tune, words, music, song_text, notes, "
             "use_private, alignment_v, alignment_h, color, font, info_color, info_font, ending_color, ending_font, "
-            "use_background, background_name, background FROM Songs WHERE id = " + QString::number(songID));
+            "use_background, background_name, background, use_translation FROM Songs WHERE id = " + QString::number(songID));
     sq.first();
     songbook_id = sq.value(0).toString();
     number = sq.value(1).toInt();
@@ -250,6 +251,7 @@ void Song::readData()
     musicBy = sq.value(6).toString();
     songText = sq.value(7).toString();
     notes = sq.value(8).toString();
+    useTranslation = sq.value(21).toBool();
     usePrivateSettings = sq.value(9).toBool();
     if(!sq.value(10).isNull())
         alignmentV = sq.value(10).toInt();
@@ -656,7 +658,7 @@ void Song::saveUpdate()
     // Update song information
     QSqlQuery sq;
     sq.prepare("UPDATE Songs SET songbook_id = ?, number = ?, title = ?, category = ?, tune = ?, words = ?, music = ?, "
-               "song_text = ?, notes = ?, use_private = ?, alignment_v = ?, alignment_h = ?, color = ?, font = ?, "
+               "song_text = ?, notes = ?, use_translation = ?, use_private = ?, alignment_v = ?, alignment_h = ?, color = ?, font = ?, "
                "info_color = ?, info_font = ?, ending_color = ?, ending_font = ?, use_background = ?, "
                "background_name = ?, background = ? WHERE id = ?");
     sq.addBindValue(songbook_id);
@@ -668,6 +670,7 @@ void Song::saveUpdate()
     sq.addBindValue(musicBy);
     sq.addBindValue(songText);
     sq.addBindValue(notes);
+    sq.addBindValue(useTranslation);
     sq.addBindValue(usePrivateSettings);
     sq.addBindValue(alignmentV);
     sq.addBindValue(alignmentH);
@@ -688,7 +691,7 @@ void Song::saveNew()
 {
     // Add a new song
     QSqlQuery sq;
-    sq.prepare("INSERT INTO Songs (songbook_id,number,title,category,tune,words,music,song_text,notes,"
+    sq.prepare("INSERT INTO Songs (songbook_id,number,title,category,tune,words,music,song_text,notes,use_translation"
                "use_private,alignment_v,alignment_h,color,font,info_color,info_font,ending_color,"
                "ending_font,use_background,background_name,background) "
                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
@@ -701,6 +704,7 @@ void Song::saveNew()
     sq.addBindValue(musicBy);
     sq.addBindValue(songText);
     sq.addBindValue(notes);
+    sq.addBindValue(useTranslation);
     sq.addBindValue(usePrivateSettings);
     sq.addBindValue(alignmentV);
     sq.addBindValue(alignmentH);
@@ -742,10 +746,10 @@ QList<Song> SongDatabase::getSongs()
     // get songs
     //              0               1       2     3        4    5      6       7         8
     //        9               10        11          12     13    14            15          16         17
-    //        18                19              20
+    //        18                19              20         22
     sq.exec("SELECT id, songbook_id, number, title, category, tune, words, music, song_text, notes, "
             "use_private, alignment_v, alignment_h, color, font, info_color, info_font, ending_color, ending_font, "
-            "use_background, background_name, background FROM Songs");
+            "use_background, background_name, background, use_translation FROM Songs");
     while(sq.next())
     {
         Song song;
@@ -759,6 +763,7 @@ QList<Song> SongDatabase::getSongs()
         song.musicBy = sq.value(7).toString();
         song.songText = sq.value(8).toString();
         song.notes = sq.value(9).toString();
+        song.useTranslation = sq.value(22).toBool();
         song.usePrivateSettings = sq.value(10).toBool();
         if(!sq.value(11).isNull())
             song.alignmentV = sq.value(11).toInt();

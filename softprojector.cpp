@@ -549,7 +549,7 @@ void SoftProjector::setSongList(Song song, int row)
     foreach (QString verseText, songTextList) {
         QStringList split = verseText.split("=");
         song_list.append(split[0].trimmed()); // Add the original language (with verse title) to the ui list.
-        if (split.length() == 2) {
+        if (song.useTranslation && split.length() == 2) {
             currentSongTranslatedVerses.append(split[1].trimmed()); // Add the translation to the translation list.
         } else {
             currentSongTranslatedVerses.append(""); // Empty translation because not every verse may be translated.
@@ -2198,7 +2198,7 @@ void SoftProjector::saveSchedule(bool overWrite)
             sq.exec("CREATE TABLE IF NOT EXISTS 'bible' ('scid' INTEGER, 'verseIds' TEXT, 'caption' TEXT, 'captionLong' TEXT)");
             sq.exec("CREATE TABLE IF NOT EXISTS 'song' ('scid' INTEGER, 'songid' INTEGER, 'sbid' INTEGER, 'sbName' TEXT, "
                     "'number' INTEGER, 'title' TEXT, 'category' INTEGER, 'tune' TEXT, 'wordsBy' TEXT, 'musicBy' TEXT, "
-                    "'songText' TEXT, 'notes' TEXT, 'usePrivate' BOOL, 'alignV' INTEGER, 'alignH' INTEGER, 'color' INTEGER, "
+                    "'songText' TEXT, 'notes' TEXT, 'useTranslation' BOOL, 'usePrivate' BOOL, 'alignV' INTEGER, 'alignH' INTEGER, 'color' INTEGER, "
                     "'font' TEXT, 'infoColor' INTEGER, 'infoFont' TEXT, 'endingColor' INTEGER, 'endingFont' TEXT, "
                     "'useBack' BOOL, 'backImage' BLOB, 'backName' TEXT)");
             sq.exec("CREATE TABLE IF NOT EXISTS 'slideshow' ('scid' INTEGER, 'ssid' INTEGER, 'name' TEXT, 'info' TEXT)");
@@ -2257,9 +2257,9 @@ void SoftProjector::saveScheduleItemNew(QSqlQuery &q, int scid, const BibleHisto
 void SoftProjector::saveScheduleItemNew(QSqlQuery &q, int scid, const Song &s)
 {
     q.prepare("INSERT INTO song (scid,songid,sbid,sbName,number,title,category,tune,wordsBy,musicBy,"
-              "songText,notes,usePrivate,alignV,alignH,color,font,infoColor,infoFont,endingColor,"
+              "songText,notes,useTranslation,usePrivate,alignV,alignH,color,font,infoColor,infoFont,endingColor,"
               "endingFont,useBack,backImage,backName) "
-              "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+              "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     q.addBindValue(scid);
     q.addBindValue(s.songID);
     q.addBindValue(s.songbook_id);
@@ -2272,6 +2272,7 @@ void SoftProjector::saveScheduleItemNew(QSqlQuery &q, int scid, const Song &s)
     q.addBindValue(s.musicBy);
     q.addBindValue(s.songText);
     q.addBindValue(s.notes);
+    q.addBindValue(s.useTranslation);
     q.addBindValue(s.usePrivateSettings);
     q.addBindValue(s.alignmentV);
     q.addBindValue(s.alignmentH);
@@ -2557,6 +2558,7 @@ void SoftProjector::openScheduleItem(QSqlQuery &q, const int scid, Song &s)
     s.musicBy = r.field("musicBy").value().toString();
     s.songText = r.field("songText").value().toString();
     s.notes = r.field("notes").value().toString();
+    s.useTranslation = r.field("useTranslation").value().toBool();
     s.usePrivateSettings = r.field("usePrivate").value().toBool();
     s.alignmentV = r.field("alignV").value().toInt();
     s.alignmentH = r.field("alignH").value().toInt();

@@ -87,6 +87,7 @@ public:
     QString musicBy;
     QString songText;
     QString notes;
+    bool useTranslation; // Show verse translations or not.
     bool usePrivateSettings;
     int alignmentV;
     int alignmentH;
