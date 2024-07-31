@@ -43,7 +43,7 @@ SongWidget::SongWidget(QWidget *parent) :
     ui->songs_view->setColumnHidden(0, true); // Hide category
     ui->songs_view->resizeColumnToContents(1); // Song Number
     ui->songs_view->setColumnWidth(2, 150);//Song Title
-    ui->songs_view->resizeColumnToContents(3); // Songbook
+    ui->songs_view->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Songbook
     ui->songs_view->setColumnWidth(4, 50);//Tune
     
     proxy_model->setSongbookFilter("ALL");
