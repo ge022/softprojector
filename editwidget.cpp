@@ -459,34 +459,13 @@ void EditWidget::loadCategories(bool ui_update)
 
 int EditWidget::isInDatabase(Song *song)
 {
-    QString s_title(""), s_id("0"), sb_id("0");
     QSqlQuery sq;
-
-    // check if song is part of songbook
-    sq.exec("SELECT id FROM Songbooks WHERE name = '" + song->songbook_name + "'");
-    while(sq.next())
-        sb_id = sq.value(0).toString().trimmed();
-    sq.clear();
-    if(sb_id == "0")
-        return 0; // no such songbook in database
-
-    // get song id
-    sq.exec("SELECT id, title from Songs WHERE songbook_id = '" + sb_id +"' AND number = '" + QString::number(song->number) +"'");
-    while(sq.next())
-    {
-        s_id = sq.value(0).toString().trimmed();
-        s_title = sq.value(1).toString().trimmed();
+    sq.exec("SELECT id from Songs WHERE id = " + QString::number(song->songID));
+    if (sq.first()) {
+        int s_id = sq.value(0).toInt();
+        return s_id;
     }
-    sq.clear();
-    if(s_id == "0")
-        return 0; // no matching song
-    song->songID = s_id.toInt();
-
-    // get song title
-    if(s_title!=song->title.trimmed())
-        return 0;
-    else
-        return s_id.toInt();
+    return 0;
 }
 
 void EditWidget::on_checkBoxSongSettings_toggled(bool checked)
