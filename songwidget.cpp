@@ -182,6 +182,7 @@ void SongWidget::sendToPreview(Song song)
         ui->label_notes->setVisible(true);
     }
     preview_song = song;
+    ui->btnLive->setEnabled(true);
     ui->enableSplitVerseCheckBox->setEnabled(true);
 }
 

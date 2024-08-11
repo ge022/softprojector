@@ -478,6 +478,9 @@ void SoftProjector::keyPressEvent(QKeyEvent *event)
     {
         ui->projectTab->setCurrentWidget(songWidget);
         songWidget->setSearchActive();
+        if (songSplitVerse) {
+            ui->songVerseSplitLayoutWidget->setVisible(false); // re-show the split list ui.
+        }
     }
     else if(key == Qt::Key_F8)
         ui->projectTab->setCurrentWidget(announceWidget);
@@ -2629,8 +2632,7 @@ void SoftProjector::openScheduleItem(QSqlQuery &q, const int scid, Announcement 
 
 void SoftProjector::sendBibleVerseToServer()
 {
-    showSongVerseSplit(false); // Don't show song split ui during bible.
-
+    ui->songVerseSplitLayoutWidget->setVisible(false); // Hide the song split list if visible.
 
     int srows(ui->listShow->count());
     QList<int> currentRows;
