@@ -691,7 +691,7 @@ void Song::saveNew()
 {
     // Add a new song
     QSqlQuery sq;
-    sq.prepare("INSERT INTO Songs (songbook_id,number,title,category,tune,words,music,song_text,notes,use_translation"
+    sq.prepare("INSERT INTO Songs (songbook_id,number,title,category,tune,words,music,song_text,notes,use_translation,"
                "use_private,alignment_v,alignment_h,color,font,info_color,info_font,ending_color,"
                "ending_font,use_background,background_name,background) "
                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
