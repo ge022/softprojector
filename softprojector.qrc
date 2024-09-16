@@ -102,5 +102,6 @@
     </qresource>
     <qresource prefix="/">
         <file>DisplayArea.qml</file>
+        <file>httpserver.html</file>
     </qresource>
 </RCC>

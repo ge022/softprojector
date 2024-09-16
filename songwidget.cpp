@@ -43,7 +43,7 @@ SongWidget::SongWidget(QWidget *parent) :
     ui->songs_view->setColumnHidden(0, true); // Hide category
     ui->songs_view->resizeColumnToContents(1); // Song Number
     ui->songs_view->setColumnWidth(2, 150);//Song Title
-    ui->songs_view->resizeColumnToContents(3); // Songbook
+    ui->songs_view->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents); // Songbook
     ui->songs_view->setColumnWidth(4, 50);//Tune
     
     proxy_model->setSongbookFilter("ALL");
@@ -182,6 +182,8 @@ void SongWidget::sendToPreview(Song song)
         ui->label_notes->setVisible(true);
     }
     preview_song = song;
+    ui->btnLive->setEnabled(true);
+    ui->enableSplitVerseCheckBox->setEnabled(true);
 }
 
 void SongWidget::sendToPreviewFromSchedule(Song &song)
@@ -193,6 +195,8 @@ void SongWidget::sendToPreviewFromSchedule(Song &song)
 
 void SongWidget::sendToProjector(Song song, int row)
 {
+    emit enableSongSplitVerse(ui->enableSplitVerseCheckBox->isChecked());
+
     // Display the specified song text in the right-most column of softProjector:
     emit sendSong(song, row);
 
@@ -430,7 +434,7 @@ void SongWidget::deleteSong()
 }
 
 void SongWidget::addNewSong(Song song, int initial_sid)
-{
+{ // TODO: fix bug, crashes if adding 2 songs with same title in a row.
 
     songs_model->addSong(song);
     allSongs.append(song);
@@ -671,3 +675,12 @@ void SongWidget::setSearchActive()
     ui->lineEditSearch->setFocus();
     ui->lineEditSearch->selectAll();
 }
+
+/*
+ * Show/Hide the song verse split list.
+ */
+void SongWidget::on_enableSplitVerseCheckBox_toggled(bool checked)
+{
+    emit enableSongSplitVerse(checked);
+}
+

@@ -161,6 +161,30 @@ bool isStanzaSlideTitle(QString string)
         return false;
 }
 
+QString getStanzaBlock(int &i, QStringList &list, bool includeTranslation)
+{
+    QString line,block;
+    int j(i);
+
+    while(i < list.count())
+    {
+        line = list.at(i);
+        if(includeTranslation == false && line.contains(QRegExp("^="))) { break; } // Doesn't include translations in the ui lists.
+        if(line.contains(QRegExp("^&")))
+            line.remove("&");
+
+        if(isStanzaTitle(line) && (i!=j))
+        {
+                i--;
+            break;
+        }
+        block += line + "\n";
+        ++i;
+    }
+
+    return block.trimmed();
+}
+
 Song::Song()
 {
     // initialize songId to be zero at start;
@@ -205,6 +229,7 @@ void Song::setDefaults()
     backgroundName = "";
     background = QPixmap();
     notes = "";
+    useTranslation = false;
 }
 
 void Song::readData()
@@ -212,10 +237,10 @@ void Song::readData()
     QSqlQuery sq;
     //              0               1       2     3        4    5      6       7         8
     //        9               10        11          12     13    14            15          16         17
-    //        18                19              20
+    //        18                19              20         21
     sq.exec("SELECT songbook_id, number, title, category, tune, words, music, song_text, notes, "
             "use_private, alignment_v, alignment_h, color, font, info_color, info_font, ending_color, ending_font, "
-            "use_background, background_name, background FROM Songs WHERE id = " + QString::number(songID));
+            "use_background, background_name, background, use_translation FROM Songs WHERE id = " + QString::number(songID));
     sq.first();
     songbook_id = sq.value(0).toString();
     number = sq.value(1).toInt();
@@ -226,6 +251,7 @@ void Song::readData()
     musicBy = sq.value(6).toString();
     songText = sq.value(7).toString();
     notes = sq.value(8).toString();
+    useTranslation = sq.value(21).toBool();
     usePrivateSettings = sq.value(9).toBool();
     if(!sq.value(10).isNull())
         alignmentV = sq.value(10).toInt();
@@ -248,7 +274,7 @@ void Song::readData()
     background.loadFromData(sq.value(20).toByteArray());
 }
 
-QStringList Song::getSongTextList()
+QStringList Song::getSongTextList(bool includeTranslation)
 {
     // This function prepares a song list that will be shown in the song preview and show list.
     // It will it will automatically prepare correct sining order of verses and choruses.
@@ -270,7 +296,7 @@ QStringList Song::getSongTextList()
         if(isStanzaVerseTitle(line))
         {
             // Fill Verse
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
             formatedSong.append(text);
 
             if (has_chorus)// add Chorus stansa to the formated list if it exists
@@ -282,7 +308,7 @@ QStringList Song::getSongTextList()
         {
 
             // Fill Additional parts of the verse
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
             // it chorus esits, this means that it was added to the formated list
             // and needs to be removed before adding addintion Veres stansas to formated list
             if(has_chorus)
@@ -298,7 +324,7 @@ QStringList Song::getSongTextList()
         else if (isStanzaSlideTitle(line))
         {
             // Fill Insert
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
             formatedSong.append(text);
 
             // Chorus is not added to Insert, if one is needed,
@@ -309,7 +335,7 @@ QStringList Song::getSongTextList()
         else if (isStanzaRefrainTitle(line))
         {
             // Fill Chorus
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
             QStringList chorusold = chorus;
             chorus.clear();
             chorus.append(text);
@@ -338,7 +364,7 @@ QStringList Song::getSongTextList()
         else if(isStanzaAndRefrainTitle(line))
         {
             // Fill other chorus parts to Chorus block
-            text = getStanzaBlock(pnum,songlist);
+            text = getStanzaBlock(pnum,songlist,includeTranslation);
 
             removeLastChorus(chorus,formatedSong);
             chorus.append(text);
@@ -350,39 +376,19 @@ QStringList Song::getSongTextList()
     return formatedSong;
 }
 
-QString Song::getStanzaBlock(int &i, QStringList &list)
-{
-    QString line,block;
-    int j(i);
-
-    while(i < list.count())
-    {
-        line = list.at(i);
-        if(line.contains(QRegExp("^&")))
-            line.remove("&");
-
-        if(isStanzaTitle(line) && (i!=j))
-        {
-                i--;
-            break;
-        }
-        block += line + "\n";
-        ++i;
-    }
-
-    return block.trimmed();
-}
-
 void Song::removeLastChorus(QStringList ct, QStringList &list)
 {
     for(int i(0);i<ct.count();++i)
         list.removeLast();
 }
 
+/*
+ * @param current the selected verse index of the song preview or rightmost lists.
+ */
 Stanza Song::getStanza(int current)
 {
     Stanza stanza;
-    QStringList song_list = getSongTextList();
+    QStringList song_list = getSongTextList(); // the list of built blocks
     stanza.isLast = (current == song_list.count()-1);
     stanza.number = number;
     stanza.tune = tune;
@@ -652,7 +658,7 @@ void Song::saveUpdate()
     // Update song information
     QSqlQuery sq;
     sq.prepare("UPDATE Songs SET songbook_id = ?, number = ?, title = ?, category = ?, tune = ?, words = ?, music = ?, "
-               "song_text = ?, notes = ?, use_private = ?, alignment_v = ?, alignment_h = ?, color = ?, font = ?, "
+               "song_text = ?, notes = ?, use_translation = ?, use_private = ?, alignment_v = ?, alignment_h = ?, color = ?, font = ?, "
                "info_color = ?, info_font = ?, ending_color = ?, ending_font = ?, use_background = ?, "
                "background_name = ?, background = ? WHERE id = ?");
     sq.addBindValue(songbook_id);
@@ -664,6 +670,7 @@ void Song::saveUpdate()
     sq.addBindValue(musicBy);
     sq.addBindValue(songText);
     sq.addBindValue(notes);
+    sq.addBindValue(useTranslation);
     sq.addBindValue(usePrivateSettings);
     sq.addBindValue(alignmentV);
     sq.addBindValue(alignmentH);
@@ -684,10 +691,10 @@ void Song::saveNew()
 {
     // Add a new song
     QSqlQuery sq;
-    sq.prepare("INSERT INTO Songs (songbook_id,number,title,category,tune,words,music,song_text,notes,"
+    sq.prepare("INSERT INTO Songs (songbook_id,number,title,category,tune,words,music,song_text,notes,use_translation,"
                "use_private,alignment_v,alignment_h,color,font,info_color,info_font,ending_color,"
                "ending_font,use_background,background_name,background) "
-               "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+               "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     sq.addBindValue(songbook_id);
     sq.addBindValue(number);
     sq.addBindValue(title);
@@ -697,6 +704,7 @@ void Song::saveNew()
     sq.addBindValue(musicBy);
     sq.addBindValue(songText);
     sq.addBindValue(notes);
+    sq.addBindValue(useTranslation);
     sq.addBindValue(usePrivateSettings);
     sq.addBindValue(alignmentV);
     sq.addBindValue(alignmentH);
@@ -738,10 +746,10 @@ QList<Song> SongDatabase::getSongs()
     // get songs
     //              0               1       2     3        4    5      6       7         8
     //        9               10        11          12     13    14            15          16         17
-    //        18                19              20
+    //        18                19              20         22
     sq.exec("SELECT id, songbook_id, number, title, category, tune, words, music, song_text, notes, "
             "use_private, alignment_v, alignment_h, color, font, info_color, info_font, ending_color, ending_font, "
-            "use_background, background_name, background FROM Songs");
+            "use_background, background_name, background, use_translation FROM Songs");
     while(sq.next())
     {
         Song song;
@@ -755,6 +763,7 @@ QList<Song> SongDatabase::getSongs()
         song.musicBy = sq.value(7).toString();
         song.songText = sq.value(8).toString();
         song.notes = sq.value(9).toString();
+        song.useTranslation = sq.value(22).toBool();
         song.usePrivateSettings = sq.value(10).toBool();
         if(!sq.value(11).isNull())
             song.alignmentV = sq.value(11).toInt();
