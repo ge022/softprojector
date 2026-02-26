@@ -53,7 +53,12 @@
             flex-direction: column;
             height: 1040px;
             width: 1860px;
-            display: none;
+            display: flex;
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            bottom: 20px;
+            left: 20px;
         }
 
         #bible #primary,
@@ -81,7 +86,7 @@
             text-align: center;
             height: 1040px;
             width: 1860px;
-            display: none;
+            display: flex;
         }
 
         #song .textFitted {
@@ -108,7 +113,11 @@
             text-align: center;
             height: 122px;
             width: 1860px;
-            display: none;
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            margin: 0 auto;
         }
 
         #song-translation p {
@@ -127,6 +136,38 @@
             z-index: -1;
             display: none;
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .fadeIn {
+            animation-name: fadeIn;
+            animation-duration: 0.5s;
+            animation-fill-mode: forwards;
+        }
+
+        .fadeOut {
+            animation-name: fadeOut;
+            animation-duration: 0.5s;
+            animation-fill-mode: forwards;
+        }
     </style> -->
 
     <!-- Style for stream (lower third)
@@ -143,7 +184,7 @@
             font-family: 'Roboto', sans-serif;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            position: relative;
         }
 
         p {
@@ -175,6 +216,10 @@
             height: 416px;
             width: 1860px;
             font-weight: 700;
+            position: absolute;
+            right: 30px;
+            bottom: 20px;
+            left: 20px;
         }
 
         #bible .text {
@@ -225,16 +270,53 @@
         }
 
         #song-split-translation {
-            display: none;
+            display: flex;
             height: 100px;
             width: 1860px;
             text-align: center;
             justify-content: center;
             align-items: flex-end;
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 20px;
+            margin: 0 auto;
         }
 
         #song-split-translation p {
             white-space: normal;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .fadeIn {
+            animation-name: fadeIn;
+            animation-duration: 0.5s;
+            animation-fill-mode: forwards;
+        }
+
+        .fadeOut {
+            animation-name: fadeOut;
+            animation-duration: 0.5s;
+            animation-fill-mode: forwards;
         }
     </style> -->
 </head>
@@ -267,26 +349,43 @@
     <script type="text/javascript">
         var wsUri = "ws://${ipAddress}:${webSocketPort}";
         var websocket = null;
+        var fadeOut;
+        var showingSong = false;
+        var searchParams = new URLSearchParams(window.location.search);
+        var songOnly = searchParams.has('songOnly');        
+        var bibleOnly = searchParams.has('bibleOnly');
 
         function clearText() {
-            document.querySelector("#bible #primary .text").textContent = "";
-            document.querySelector("#bible #primary .reference").textContent = "";
-            document.querySelector("#bible #secondary .text").textContent = "";
-            document.querySelector("#bible #secondary .reference").textContent = "";
-            document.querySelector("#song .text").textContent = "";
-            document.querySelector("#song-translation .text").textContent = "";
-            document.querySelector("#song-split-translation .text").textContent = "";
-            document.querySelector("#song #last-indicator").style.visibility = "hidden";
-            document.querySelector("#song").classList.remove("full-verse", "verse-split");
-            document.querySelector("#bible").style.display = "none";
-            document.querySelector("#song").style.display = "none";
-            document.querySelector("#song-translation").style.display = "none";
-            document.querySelector("#song-translation-divider").style.display = "none";
-            document.querySelector("#song-split-translation").style.display = "none";
+            document.querySelector("#bible").classList.add('fadeOut');
+            document.querySelector("#bible").classList.remove('fadeIn');
+            document.querySelector("#song").classList.add('fadeOut');
+            document.querySelector("#song").classList.remove('fadeIn');
+            document.querySelector("#song-translation-divider").classList.add('fadeOut');
+            document.querySelector("#song-translation-divider").classList.remove('fadeIn');
+            document.querySelector("#song-translation").classList.add('fadeOut');
+            document.querySelector("#song-translation").classList.remove('fadeIn');
+            document.querySelector("#song-split-translation").classList.add('fadeOut');
+            document.querySelector("#song-split-translation").classList.remove('fadeIn');
+
+            fadeOut = setTimeout(function() {
+                document.querySelector("#bible #primary .text").textContent = "";
+                document.querySelector("#bible #primary .reference").textContent = "";
+                document.querySelector("#bible #secondary .text").textContent = "";
+                document.querySelector("#bible #secondary .reference").textContent = "";
+                document.querySelector("#song .text").textContent = "";
+                document.querySelector("#song-translation .text").textContent = "";
+                document.querySelector("#song-split-translation .text").textContent = "";
+                document.querySelector("#song #last-indicator").style.visibility = "hidden";
+                document.querySelector("#song").classList.remove("full-verse", "verse-split");             
+            }, 500);
         }
 
         function displayBible(bible) {
-            document.querySelector("#bible").style.display = "flex";
+            document.querySelector("#song").classList.add('fadeOut');
+            document.querySelector("#song-translation-divider").classList.add('fadeOut');
+            document.querySelector("#song-translation").classList.add('fadeOut');
+            document.querySelector("#song-translation").classList.remove('fadeIn');
+            document.querySelector("#song-split-translation ").classList.add('fadeOut');
             if (window.getComputedStyle(document.querySelector('#primary')).display !== 'none') {
                 document.querySelector("#bible #primary .text").textContent = bible.primary.verse;
                 document.querySelector("#bible #primary .reference").textContent = bible.primary.reference;
@@ -297,16 +396,17 @@
                 document.querySelector("#bible #secondary .reference").textContent = bible.secondary.reference;
                 textFit(document.querySelector('#secondary'), { maxFontSize: 82 });
             }
+            document.querySelector("#bible").classList.remove('fadeOut');
+            document.querySelector("#bible").classList.add('fadeIn');
         }
 
         function displaySong(song) {
-            document.querySelector("#song").style.display = "flex";
+            document.querySelector("#bible").classList.add('fadeOut');
             if (window.getComputedStyle(document.querySelector('#last-indicator')).display !== 'none') {
                 // Projector styling.
                 if (!!song.splitTranslation) {
                     document.querySelector("body").style.paddingBottom = "0px";
                     document.querySelector("body").style.height = "1060px";
-                    document.querySelector("#song-translation").style.display = "flex";
 
                     if (song.splitTranslation.length <= 162) {
                         // One or two lines of text box height.
@@ -320,13 +420,26 @@
                         document.querySelector("#song-translation-divider").style.height = "181px";
                     }
 
-                    document.querySelector("#song-translation-divider").style.display = "block";
                     document.querySelector("#song-translation .text").textContent = song.splitTranslation;
                     textFit(document.querySelector('#song-translation'), { maxFontSize: 50 });
+                    
+                    if (!showingSong) {
+                        // Fade in divider only on initial load.
+                        document.querySelector("#song-translation").classList.add('fadeIn');
+                        document.querySelector("#song-translation-divider").classList.add('fadeIn');
+                    }
+                    document.querySelector("#song-translation").classList.remove('fadeOut');
+                    document.querySelector("#song-translation-divider").classList.remove('fadeOut');
+                    document.querySelector("#song-translation-divider").style.display = "block";
                 } else {
+                    // Projector styling no translation.
                     document.querySelector("body").style.height = "1040px";
                     document.querySelector("body").style.paddingBottom = "20px";
                     document.querySelector("#song").style.height = "1040px";
+                    document.querySelector("#song-translation .text").textContent = "";
+
+                    document.querySelector("#song-translation-divider").classList.remove('fadeOut');
+                    document.querySelector("#song-translation-divider").classList.remove('fadeIn');
                     document.querySelector("#song-translation-divider").style.display = "none";
                 }
                 document.querySelector("#song .text").textContent = song.verse;
@@ -337,28 +450,51 @@
                 document.querySelector("#song").style.height = "940px";
 
                 document.querySelector("#song").classList.add("verse-split");
+                document.querySelector("#song").classList.remove("full-verse");
                 document.querySelector("#song .text").textContent = song.split;
                 textFit(document.querySelector('#song'), { maxFontSize: 65 });
 
                 document.querySelector("#song-split-translation .text").textContent = song.splitTranslation;
-                document.querySelector("#song-split-translation").style.display = "flex";
+                if (!showingSong) {
+                    // Fade in divider only on initial load.
+                    document.querySelector("#song-split-translation ").classList.add('fadeIn');
+                }
+                document.querySelector("#song-split-translation ").classList.remove('fadeOut');
+                // document.querySelector("#song-split-translation").style.display = "flex";
                 textFit(document.querySelector('#song-split-translation'), { maxFontSize: 36 });
             } else {
                 // Lower-thirds styling for full verse.
                 document.querySelector("#song").style.height = "1040px";
                 document.querySelector("#song").classList.add("full-verse");
+                document.querySelector("#song").classList.remove("verse-split");
                 document.querySelector("#song .text").textContent = song.verse;
                 textFit(document.querySelector('#song'), { maxFontSize: 44 });
+                document.querySelector("#song").classList.remove('fadeOut');
+                document.querySelector("#song").classList.add('fadeIn');
+
+                document.querySelector("#song-split-translation").classList.remove('fadeOut');
+                document.querySelector("#song-split-translation").classList.remove('fadeIn');
+                document.querySelector("#song-split-translation .text").textContent = "";
+                // document.querySelector("#song-split-translation").style.display = "none";
             }
+
+            document.querySelector("#song").classList.remove('fadeOut');
+            document.querySelector("#song").classList.add('fadeIn');
         }
 
         function displayText(data) {
-            clearText();
             var text = JSON.parse(event.data);
-            if (text.bible !== undefined) {
+            if (text.bible !== undefined && !songOnly) {
+                clearTimeout(fadeOut);
                 displayBible(text.bible);
-            } else if (text.song !== undefined) {
+                showingSong = false;
+            } else if (text.song !== undefined && !bibleOnly) {
+                clearTimeout(fadeOut);
                 displaySong(text.song);
+                showingSong = true;
+            } else {
+                clearText();
+                showingSong = false;
             }
         }
 
