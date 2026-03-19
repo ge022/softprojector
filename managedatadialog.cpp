@@ -727,7 +727,7 @@ void ManageDataDialog::exportSongbook(QString path)
             q.exec("PRAGMA user_version = 2");
             q.exec("CREATE TABLE 'SongBook' ('title' TEXT, 'info' TEXT)");
             q.exec("CREATE TABLE 'Songs' ('number' INTEGER, 'title' TEXT, 'category' INTEGER DEFAULT 0, "
-                   "'tune' TEXT, 'words' TEXT, 'music' TEXT, 'song_text' TEXT, 'notes' TEXT, use_translation BOOL"
+                   "'tune' TEXT, 'words' TEXT, 'music' TEXT, 'song_text' TEXT, 'notes' TEXT, 'use_translation' BOOL, "
                    "'use_private' BOOL, 'alignment_v' INTEGER, 'alignment_h' INTEGER, 'color' INTEGER, 'font' TEXT, "
                    "'info_color' INTEGER, 'info_font' TEXT, 'ending_color' INTEGER, 'ending_font' TEXT, "
                    "'use_background' BOOL, 'background_name' TEXT, 'background' BLOB, 'count' INTEGER DEFAULT 0, 'date' TEXT)");
@@ -746,7 +746,7 @@ void ManageDataDialog::exportSongbook(QString path)
 
             // Write Songs
             sq.exec("SELECT * FROM Songs WHERE songbook_id = " + songbook_id);
-            q.prepare("INSERT INTO Songs (number,title,category,tune,words,music,song_text,notes,use_translation"
+            q.prepare("INSERT INTO Songs (number,title,category,tune,words,music,song_text,notes,use_translation,"
                       "use_private,alignment_v,alignment_h,color,font,info_color,info_font,ending_color,ending_font,"
                       "use_background,background_name,background,count,date) "
                       "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
