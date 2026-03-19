@@ -62,6 +62,7 @@ signals:
     void setArrowCursor();
     void sendSong(Song song, int currentItem);
     void addToSchedule(Song &song);
+    void enableSongSplitVerse(bool enabled);
 
 private slots:
     void on_comboBoxCategory_currentIndexChanged(int index);
@@ -82,6 +83,8 @@ private slots:
     void on_pushButtonSearch_clicked();
     void on_pushButtonClearResults_clicked();
     void on_comboBoxFilterType_currentIndexChanged(int index);
+
+    void on_enableSplitVerseCheckBox_toggled(bool checked);
 
 private:
     Ui::SongWidget *ui;
