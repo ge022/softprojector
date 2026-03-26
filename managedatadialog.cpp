@@ -577,7 +577,7 @@ void ManageDataDialog::importSongbook(QString path)
                         sq.prepare("INSERT INTO Songs (songbook_id,number,title,category,tune,words,music,song_text,notes,use_translation,"
                                    "use_private,alignment_v,alignment_h,color,font,info_color,info_font,ending_color,"
                                    "ending_font,use_background,background_name,background,count,date) "
-                                   "VALUES(:id, :num, :ti, :ca, :tu, :wo, :mu, :st, :no, :up, :av, :ah, :tc, :tf, "
+                                   "VALUES(:id, :num, :ti, :ca, :tu, :wo, :mu, :st, :no, :ut, :up, :av, :ah, :tc, :tf, "
                                    ":ic, :if, :ec, :ef, :ub, :bn, :b, :ct, :d)");
                         while(q.next())
                         {
