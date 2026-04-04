@@ -17,7 +17,7 @@
 //
 ***************************************************************************/
 
-#include "httpserver.hpp"
+#include "../headers/httpserver.hpp"
 
 #include <QFile>
 #include <QJsonObject>
@@ -60,7 +60,7 @@ void HttpServer::sendData()
 {
     QTcpSocket* socket = (QTcpSocket*)sender();
 
-    QFile file(":/httpserver.html");
+    QFile file(":/html/html/httpserver.html");
     if(!file.open(QFile::ReadOnly |
                   QFile::Text))
     {
@@ -88,6 +88,5 @@ void HttpServer::sendData()
 void HttpServer::stopServer()
 {
     server->close();
-    delete server;
     isRunning = false;
 }

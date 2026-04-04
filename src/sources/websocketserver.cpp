@@ -20,7 +20,7 @@
 #include "QtWebSockets/qwebsocketserver.h"
 #include "QtWebSockets/qwebsocket.h"
 
-#include "websocketserver.hpp"
+#include "../headers/websocketserver.hpp"
 
 #include <QJsonObject>
 

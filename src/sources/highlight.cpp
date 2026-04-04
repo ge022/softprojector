@@ -82,7 +82,7 @@ Highlight::Highlight(QTextDocument *parent)
     // Translation formating
     translationFormat.setForeground(Qt::black);
     translationFormat.setBackground(Qt::green);
-    rule.pattern = QRegExp("^=[^\n]*");
+    rule.pattern = QRegularExpression("^=[^\n]*");
     rule.format = translationFormat;
     highlightingRules.append(rule);
 }

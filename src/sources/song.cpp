@@ -169,8 +169,8 @@ QString getStanzaBlock(int &i, QStringList &list, bool includeTranslation)
     while(i < list.count())
     {
         line = list.at(i);
-        if(includeTranslation == false && line.contains(QRegExp("^="))) { break; } // Doesn't include translations in the ui lists.
-        if(line.contains(QRegExp("^&")))
+        if(includeTranslation == false && line.contains(QRegularExpression("^="))) { break; } // Doesn't include translations in the ui lists.
+        if(line.contains(QRegularExpression("^&")))
             line.remove("&");
 
         if(isStanzaTitle(line) && (i!=j))
