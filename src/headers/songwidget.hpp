@@ -102,6 +102,9 @@ private:
     QList<int> cat_ids;
     QList<Song> allSongs;
     HighlighterDelegate *highlight;
+    QTimer *searchTimer;
+    QString searchText;
+    void processSearch();
 };
 
 #endif // SONGWIDGET_HPP

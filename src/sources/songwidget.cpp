@@ -56,6 +56,11 @@ SongWidget::SongWidget(QWidget *parent) :
     // set highligher
     highlight = new HighlighterDelegate(ui->listPreview);
     ui->listWidgetDummy->setVisible(false);
+
+    searchTimer = new QTimer(this);
+    searchTimer->setSingleShot(true);
+    connect(searchTimer, &QTimer::timeout, this, &SongWidget::processSearch);
+
 }
 
 SongWidget::~SongWidget()
@@ -307,6 +312,13 @@ void SongWidget::on_btnLive_clicked()
 
 void SongWidget::on_lineEditSearch_textEdited(QString text)
 {
+    searchText = text;
+    // The search only actually runs when the user stops typing for 0.2 seconds.
+    searchTimer->start(200);
+}
+
+void SongWidget::processSearch()
+{
     // Check if full-text search is in progress
     // If no full-text search is in progress, then filter
     if(!ui->pushButtonClearResults->isVisible())
@@ -314,7 +326,7 @@ void SongWidget::on_lineEditSearch_textEdited(QString text)
 
         // If search text is numeric, sort by the number, else sort by title
         bool ok;
-        text.toInt(&ok);
+        searchText.toInt(&ok);
         if(ok)
         {
             proxy_model->sort(1);
@@ -328,9 +340,7 @@ void SongWidget::on_lineEditSearch_textEdited(QString text)
         bool match_beginning = (ui->comboBoxFilterType->currentIndex() == 1);
         bool exact_match = (ui->comboBoxFilterType->currentIndex() == 2);
 
-        songs_model->emitLayoutAboutToBeChanged(); // prepares view to be redrawn
-        proxy_model->setFilterString(text, match_beginning, exact_match);
-        songs_model->emitLayoutChanged(); // forces the view to redraw
+        proxy_model->setFilterString(searchText, match_beginning, exact_match);
 
         // Select the first row that matches the new filter:
         ui->songs_view->selectRow(0);
@@ -559,7 +569,7 @@ void SongWidget::on_pushButtonSearch_clicked()
     int type = ui->comboBoxSearchType->currentIndex();
 
     // Make sure that there is some text to do a search for, if none, then return
-    if(search_text.count()<1)
+    if(search_text.length()<1)
     {
         ui->lineEditSearch->clear();
         ui->lineEditSearch->setPlaceholderText(tr("Please enter search text"));

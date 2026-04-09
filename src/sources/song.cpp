@@ -28,7 +28,11 @@
 QString clean(QString str)
 {
     //Removes all none alphanumeric characters from the string
-    str.replace(QRegularExpression("[\\W*]")," ");
+
+    // Matches anything that is NOT a Letter (L) or a Number (N). Supports Cyrillic.
+    QRegularExpression re("[^\\p{L}\\p{N}]+");
+
+    str.replace(re, " ");
     str = str.simplified();
     return str;
 }
@@ -578,6 +582,7 @@ void SongProxyModel::setFilterString(QString new_string, bool new_match_beginnin
     filter_string = new_string;
     match_beginning = new_match_beginning;
     exact_match = new_exact_match;
+    this->endFilterChange();
 }
 
 void SongProxyModel::setSongbookFilter(QString new_songbook)
